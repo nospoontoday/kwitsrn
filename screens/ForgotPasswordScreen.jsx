@@ -1,8 +1,7 @@
-import { Button, Platform, SafeAreaView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { FormTextField } from "../components/FormTextField";
-import { useContext, useState } from "react";
-import { loadUser, login, sendPasswordResetLink } from "../services/AuthService";
-import AuthContext from "../contexts/AuthContext";
+import { useState } from "react";
+import { sendPasswordResetLink } from "../services/AuthService";
 
 export default function() {
     const [email, setEmail] = useState("");

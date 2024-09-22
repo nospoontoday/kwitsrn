@@ -8,6 +8,7 @@ import AuthContext from "./contexts/AuthContext";
 import SplashScreen from "./screens/SplashScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import { getToken } from "./services/TokenService";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,14 @@ export default function App() {
   useEffect(() => {
     async function runEffect() {
       try {
+        token = await getToken();
+
+        if (token == null) {
+          setUser(null);
+          setStatus("idle");
+          return;
+        }
+
         const user = await loadUser();
         setUser(user);
       } catch (e) {
