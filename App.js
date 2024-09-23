@@ -54,7 +54,7 @@ export default function App() {
           ) : (
             <>
               <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
-              <Stack.Screen name="Create account" component={RegisterScreen} />
+              <Stack.Screen name="Create account" component={RegisterScreen} options={{headerShown: false}} />
               <Stack.Screen name="Forgot password" component={ForgotPasswordScreen} />
             </>
           )}

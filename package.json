@@ -17,6 +17,7 @@
     "expo": "~51.0.28",
     "expo-secure-store": "^13.0.2",
     "expo-status-bar": "~1.12.1",
+    "lottie-react-native": "^7.0.0",
     "nativewind": "^2.0.11",
     "react": "18.2.0",
     "react-native": "0.74.5",
