@@ -8,6 +8,9 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import { StatusBar } from "expo-status-bar";
 import Loading from "../components/Loading";
 import CustomKeyboardView from "../components/CustomKeyboardView";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MASTER_KEY } from "@env";
+import { createKeyPair } from "../utils/crypto";
 
 export default function({ navigation }) {
     const [loading, setLoading] = useState(false);
@@ -28,8 +31,10 @@ export default function({ navigation }) {
 
             const user = await loadUser();
             setUser(user);
-            
 
+            if(!user.public_key) {
+                createKeyPair();
+            }
         } catch (e) {
             if(e.response?.status === 422) {
                 setErrors(e.response.data.errors);

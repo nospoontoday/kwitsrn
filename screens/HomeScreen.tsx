@@ -7,20 +7,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import ChatList from "../components/ChatList";
 import { loadConversations } from "../services/ConversationService";
 
-import { box } from "tweetnacl";
-import { decrypt, encrypt, generateKeyPair, PRNG } from "../utils/crypto";
-
-const obj = { hello: 'world' };
-const pairA = generateKeyPair();
-const pairB = generateKeyPair();
-
-const sharedA = box.before(pairB.publicKey, pairA.secretKey);
-const encrypted = encrypt(sharedA, obj);
-
-const sharedB = box.before(pairA.publicKey, pairB.secretKey);
-const decrypted = decrypt(sharedB, encrypted);
-console.log(obj, encrypted, decrypted);
-
 export default function() {
     const { user, setUser } = useContext(AuthContext);
     const [ users, setUsers ] = useState([1,2,3]);

@@ -1,17 +1,15 @@
-import { Button, Image, Platform, Pressable, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FormTextField } from "../components/FormTextField";
 import { useContext, useState } from "react";
-import { loadUser, login, register } from "../services/AuthService";
+import { loadUser, register } from "../services/AuthService";
 import AuthContext from "../contexts/AuthContext";
 import { StatusBar } from "expo-status-bar";
 
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import Loading from "../components/Loading";
 import CustomKeyboardView from "../components/CustomKeyboardView";
-import { createKeyPair, generateKeyPair } from "../utils/crypto";
-import { MASTER_KEY } from "@env";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { savePublicKey } from "../services/KeyService";
+import { createKeyPair } from "../utils/crypto";
+
 
 export default function({ navigation }) {
     const [loading, setLoading] = useState(false);
