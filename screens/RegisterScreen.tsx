@@ -22,8 +22,6 @@ export default function({ navigation }) {
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
     const [errors, setErrors] = useState({});
 
-
-
     async function handleRegister({ navigation }) {
         setErrors({});
         setLoading(true);

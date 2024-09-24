@@ -3,6 +3,8 @@ import { box, randomBytes, setPRNG } from "tweetnacl";
 import {decode as decodeUTF8, encode as encodeUTF8} from '@stablelib/utf8';
 import {decode as decodeBase64, encode as encodeBase64} from '@stablelib/base64';
 import { savePublicKey } from "../services/KeyService";
+import { MASTER_KEY } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function PRNG(x, n) {
     const randomBytes = getRandomBytes(n);
