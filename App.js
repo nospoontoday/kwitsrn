@@ -9,6 +9,8 @@ import SplashScreen from "./screens/SplashScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import { getToken } from "./services/TokenService";
+import HomeHeader from "./components/HomeHeader";
+import { MenuProvider } from "react-native-popup-menu";
 
 const Stack = createNativeStackNavigator();
 
@@ -44,23 +46,27 @@ export default function App() {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
-      <NavigationContainer>
-        <Stack.Navigator>
-          {user ? (
-            <>
-              <Stack.Screen name="Home" component={HomeScreen} />
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
-              <Stack.Screen name="Create account" component={RegisterScreen} options={{headerShown: false}} />
-              <Stack.Screen name="Forgot password" component={ForgotPasswordScreen} />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
+    <MenuProvider>
+      <AuthContext.Provider value={{ user, setUser }}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            {user ? (
+              <>
+                <Stack.Screen name="Home" component={HomeScreen} options={{
+                  header: () => <HomeHeader />
+                }} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
+                <Stack.Screen name="Create account" component={RegisterScreen} options={{headerShown: false}} />
+                <Stack.Screen name="Forgot password" component={ForgotPasswordScreen} />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>
+    </MenuProvider>
   )
 
 }

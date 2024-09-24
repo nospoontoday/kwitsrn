@@ -8,6 +8,10 @@ import { StatusBar } from "expo-status-bar";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import Loading from "../components/Loading";
 import CustomKeyboardView from "../components/CustomKeyboardView";
+import { createKeyPair, generateKeyPair } from "../utils/crypto";
+import { MASTER_KEY } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { savePublicKey } from "../services/KeyService";
 
 export default function({ navigation }) {
     const [loading, setLoading] = useState(false);
@@ -17,6 +21,8 @@ export default function({ navigation }) {
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
     const [errors, setErrors] = useState({});
+
+
 
     async function handleRegister({ navigation }) {
         setErrors({});
@@ -32,6 +38,8 @@ export default function({ navigation }) {
 
             const user = await loadUser();
             setUser(user);
+            createKeyPair();
+
             navigation.replace("Home")
 
         } catch (e) {
