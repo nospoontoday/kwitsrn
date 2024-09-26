@@ -31,9 +31,9 @@ export async function sendPasswordResetLink(email) {
 }
 
 export async function loadUser() {
-    const { data: user } = await axios.get("/user");
+    const { data } = await axios.get("/user");
 
-    return user;
+    return data.user || data;
 }
 
 export async function logout() {
