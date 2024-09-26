@@ -2,11 +2,21 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { formatMessageDateShort } from '../helpers/date';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ChatItem({ item, noBorder }) {
+    const navigation = useNavigation();
+    const isGroup = item.is_group;
+    const isUser = item.is_user;
 
-    // const isGroup = item.is_group;
-    // const isUser = item.is_user;
+    const linkRoute = isGroup ? `/group/${item.id}` : `/user/${item.id}`;
+
+    const openChatRoom = () => {
+        navigation.navigate('ChatRoom', {
+            conversation: item,
+            linkRoute: linkRoute,
+        });
+    }
 
     return (
         <TouchableOpacity
@@ -17,6 +27,7 @@ export default function ChatItem({ item, noBorder }) {
                 alignItems: 'center',
             }}
             className={`${noBorder ? '' : 'border-b border-b-neutral-200'}`}
+            onPress={openChatRoom}
         >
         <Image
             source={require('../assets/images/avatar.png')}

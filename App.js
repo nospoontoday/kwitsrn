@@ -11,6 +11,9 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import { getToken } from "./services/TokenService";
 import HomeHeader from "./components/HomeHeader";
 import { MenuProvider } from "react-native-popup-menu";
+import ChatRoomScreen from "./screens/ChatRoomScreen";
+import ChatRoomHeaderLeft from "./components/ChatRoomHeaderLeft";
+import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
 
 const Stack = createNativeStackNavigator();
 
@@ -52,9 +55,24 @@ export default function App() {
           <Stack.Navigator>
             {user ? (
               <>
-                <Stack.Screen name="Home" component={HomeScreen} options={{
-                  header: () => <HomeHeader />
-                }} />
+                <Stack.Screen 
+                  name="Home" 
+                  component={HomeScreen} 
+                  options={{
+                    header: () => <HomeHeader />
+                  }} 
+                />
+                <Stack.Screen 
+                  name="ChatRoom" 
+                  component={ChatRoomScreen}
+                  options={({ route }) => ({
+                    title: '',
+                    headerShadowVisible: false,
+                    // header: () => <ChatRoomHeader conversation={route.params.conversation} />,
+                    headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
+                    headerRight: () => <ChatRoomHeaderRight conversation={route.params.conversation} />,
+                  })}
+                />
               </>
             ) : (
               <>
