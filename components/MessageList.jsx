@@ -1,14 +1,21 @@
 import { View, Text, ScrollView } from 'react-native';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import MessageItem from './MessageItem';
+import AuthContext from '../contexts/AuthContext';
+import { useStore } from '../store/store';
 
-export default function MessageList({ messages, user }) {
+export default function MessageList() {
   const scrollViewRef = useRef();
+  const { user } = useContext(AuthContext);
+  const messages = useStore((state) => state.messages);
 
   // Scroll to bottom when messages are loaded or updated
   useEffect(() => {
     if (messages.length > 0 && scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: false }); // false to immediately scroll to the end on load
+      // Delay the scroll to allow time for rendering
+      setTimeout(() => {
+        scrollViewRef.current.scrollToEnd({ animated: true }); // animated for smooth scrolling
+      }, 100);  // Short delay for rendering
     }
   }, [messages]);
 

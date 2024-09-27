@@ -34,6 +34,7 @@ export default function({ navigation }) {
                 createKeyPair();
             }
         } catch (e) {
+            console.log(e)
             if(e.response?.status === 422) {
                 setErrors(e.response.data.errors);
             }

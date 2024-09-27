@@ -5,3 +5,7 @@ export async function loadMessages(linkRoute) {
 
     return data;
 }
+
+export async function sendMessage(route, formData) {
+    const { data } = await axios.post(route, formData);
+}
