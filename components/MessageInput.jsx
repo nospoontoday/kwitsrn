@@ -5,9 +5,14 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import AuthContext from '../contexts/AuthContext';
 import { sendMessage } from '../services/MessageService';
 import { useStore } from '../store/store';
+import { box } from "tweetnacl";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MASTER_KEY } from "@env";
+import { encrypt } from '../utils/crypto';
+import {decode as decodeBase64, encode as encodeBase64} from '@stablelib/base64';
 
 export default function MessageInput({conversation}) {
-    // const {user, setUser} = useContext(AuthContext);
+    const {user, setUser} = useContext(AuthContext);
     const [inputMessage, setInputMessage] = useState(""); // Local state for input
     const [messageSending, setMessageSending] = useState(false);
     const newMessage = useStore((state) => state.newMessage);
@@ -18,12 +23,42 @@ export default function MessageInput({conversation}) {
 
         try {
             setMessageSending(true);
+            const encryptedMessages = {};
+
             if(conversation.is_group) {
                 const users = conversation.users;
                 //@TODO
             } else {
+                const obj = { message: inputMessage };
+
+                //does he receiver have public_key?
+                if(!conversation.public_key) {
+                    console.log("This user needs to log in first.");
+                    return;
+                }
+
+                // does the current logged in user have a master key?
+                const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+
+                if(!masterKey) {
+                    console.log("Key expired. Please update key.");
+                    return;
+                }
+
+                const sharedKey = box.before(decodeBase64(conversation.public_key), decodeBase64(masterKey));
+
+                const encrypted = encrypt(sharedKey, obj);
+
+                encryptedMessages[conversation.id] = {
+                    encryptedMessage: encrypted
+                }
+
+                encryptedMessages[user.id] = {
+                    encryptedMessage: encrypted
+                }
+
                 const response = await sendMessage("/message", {
-                    message: inputMessage,
+                    message: JSON.stringify(encryptedMessages),
                     message_string: inputMessage,
                     receiver_id: conversation.id
                 });
