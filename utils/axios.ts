@@ -1,9 +1,11 @@
 import axiosLib from "axios";
 import { getToken } from "../services/TokenService";
-import { API_URL } from "@env";
+import Constants from "expo-constants";
+
+const uri = `http://${Constants.expoConfig?.hostUri?.split(':').shift()}:80` ?? 'http://yourapi.com';
 
 const axios = axiosLib.create({
-    baseURL: `${API_URL}/api`,
+    baseURL: `${uri}/api`,
     headers: {
         Accept: "application/json",
     }
