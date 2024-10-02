@@ -1,12 +1,10 @@
 import { View, Text, ScrollView } from 'react-native';
 import React, { useRef, useEffect, useContext } from 'react';
 import MessageItem from './MessageItem';
-import AuthContext from '../contexts/AuthContext';
 import { useStore } from '../store/store';
 
 export default function MessageList() {
   const scrollViewRef = useRef();
-  const { user } = useContext(AuthContext);
   const messages = useStore((state) => state.messages);
 
   // Scroll to bottom when messages are loaded or updated
@@ -32,7 +30,7 @@ export default function MessageList() {
           </View>
         ) : (
           messages.map((message, index) => (
-            <MessageItem message={message} key={index} user={user} />
+            <MessageItem message={message} key={index} />
           ))
         )
       }

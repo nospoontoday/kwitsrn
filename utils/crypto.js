@@ -69,3 +69,7 @@ export const decrypt = ( secretOrSharedKey, messageWithNonce, key) => {
     const base64DecryptedMessage = decodeUTF8(decrypted);
     return JSON.parse(base64DecryptedMessage);
 }
+
+export const decryptWithPrivateKey = (message, ) => {
+
+}
