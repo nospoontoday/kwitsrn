@@ -6,13 +6,44 @@ import { StatusBar } from "expo-status-bar";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import ChatList from "../components/ChatList";
 import { loadConversations } from "../services/ConversationService";
+import { useStore } from "../store/store";
+import Pusher from "pusher-js";
+import { PUSHER_APP_KEY, PUSHER_CLUSTER } from "@env";
+import Constants from "expo-constants";
+// import echo from "../utils/echo";
 
 export default function() {
-    const { user, setUser } = useContext(AuthContext);
-    const [ users, setUsers ] = useState([1,2,3]);
-    const [ conversations, setConversations ] = useState([]);
+    const { user, setUser, echo } = useContext(AuthContext);
     const [localConversations, setLocalConversations] = useState([]);
     const [sortedConversations, setSortedConversations] = useState([]);
+    const conversations = useStore((state) => state.conversations);
+    const setConversations = useStore((state) => state.setConversations);
+    const uri = `http://${Constants.expoConfig?.hostUri?.split(':').shift()}:80` ?? 'http://yourapi.com';
+
+    useEffect(() => {
+        conversations.forEach((conversation) => {
+            let channelString  = `message.group.${conversation.id}`;
+            
+            if(conversation.is_user) {
+                channelString = `message.user.${[
+                    user.id,
+                    conversation.id
+                ]
+                    .sort((a, b) => a - b)
+                    .join(".")}`;
+            }
+            
+            const channel = echo.private(channelString)
+            .error((err) => {
+                console.error(err);
+            })
+            .listen('.SocketMessage', (event) => {
+                console.log('RealTimeEvent received:', event);
+                // Update your React component state or perform other actions
+            });
+        });
+
+    }, [conversations])
 
     // get the conversations
     useEffect(() => {
@@ -21,6 +52,15 @@ export default function() {
             getConversations();
         }
     },[]);
+
+    async function getConversations() {
+        try {
+            const data = await loadConversations();
+            setConversations(data);
+        } catch (e) {
+            console.log(e.response.data)
+        }
+    }
 
     // decrypt the conversations
     useEffect(() => {
@@ -54,15 +94,6 @@ export default function() {
 
     async function getUsers() {
 
-    }
-
-    async function getConversations() {
-        try {
-            const data = await loadConversations();
-            setConversations(data);
-        } catch (e) {
-            console.log(e.response.data)
-        }
     }
 
     async function decryptConversations() {

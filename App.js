@@ -14,18 +14,19 @@ import { MenuProvider } from "react-native-popup-menu";
 import ChatRoomScreen from "./screens/ChatRoomScreen";
 import ChatRoomHeaderLeft from "./components/ChatRoomHeaderLeft";
 import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
+import { setEchoInstance } from "./utils/echo";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [user, setUser] = useState();
   const [status, setStatus] = useState("loading");
+  const [echo, setEcho] = useState(null);
 
   useEffect(() => {
     async function runEffect() {
       try {
         token = await getToken();
-
         if (token == null) {
           setUser(null);
           setStatus("idle");
@@ -34,6 +35,8 @@ export default function App() {
 
         const user = await loadUser();
         setUser(user);
+        const echoInstance = setEchoInstance(token);
+        setEcho(echoInstance);
       } catch (e) {
         console.log("Failed to load user", e);
       }
@@ -50,7 +53,7 @@ export default function App() {
 
   return (
     <MenuProvider>
-      <AuthContext.Provider value={{ user, setUser }}>
+      <AuthContext.Provider value={{ user, setUser, echo }}>
         <NavigationContainer>
           <Stack.Navigator>
             {user ? (

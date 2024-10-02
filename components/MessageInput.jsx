@@ -17,10 +17,11 @@ export default function MessageInput({conversation}) {
         if (messageSending || inputMessage.trim() === "") return;
 
         try {
+            setMessageSending(true);
             if(conversation.is_group) {
+                const users = conversation.users;
                 //@TODO
             } else {
-                setMessageSending(true);
                 const response = await sendMessage("/message", {
                     message: inputMessage,
                     message_string: inputMessage,
