@@ -7,7 +7,6 @@ import { useNavigation } from '@react-navigation/native';
 export default function ChatItem({ item, noBorder }) {
     const navigation = useNavigation();
     const isGroup = item.is_group;
-    const isUser = item.is_user;
 
     const linkRoute = isGroup ? `/group/${item.id}` : `/user/${item.id}`;
 

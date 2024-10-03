@@ -42,8 +42,6 @@ export default function MessageItem({ message }) {
                     // Decrypt the message using the appropriate public key
                     const sharedKey = box.before(decodeBase64(publicKey), decodeBase64(masterKey));
                     const decrypted = decrypt(sharedKey, encryptedMessage);
-                    
-                    console.log("DECRYPTED", decrypted);
 
                     setDecryptedMessage(decrypted);
                 }
@@ -59,7 +57,7 @@ export default function MessageItem({ message }) {
         } else {
             setDecryptedMessage("No Message");
         }
-    }, [message.message]);
+    }, [message.message, user.id]);
  
     return (
         <View style={[

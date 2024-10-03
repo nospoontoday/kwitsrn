@@ -156,7 +156,7 @@ export default function() {
         <SafeAreaView className="flex-1 bg-white">
             <StatusBar style="light" />
             {
-                sortedConversations.length > 0 ? (
+                sortedConversations?.length > 0 ? (
                     <ChatList sortedConversations={sortedConversations} />
                 ) : (
                     <View className="flex items-center" style={{ top: hp(30)  }} >
