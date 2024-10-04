@@ -3,7 +3,7 @@ import React, { useContext, useState } from 'react';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import AuthContext from '../contexts/AuthContext';
-import { sendMessage } from '../services/MessageService';
+import { oweMe, sendMessage } from '../services/MessageService';
 import { useStore } from '../store/store';
 import { box } from "tweetnacl";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +18,59 @@ export default function MessageInput({ conversation }) {
     const [inputMessage, setInputMessage] = useState(""); 
     const [messageSending, setMessageSending] = useState(false);
     const newMessage = useStore((state) => state.newMessage);
+
+    async function onYouOweMeClick() {
+        if(messageSending) {
+            return;
+        }
+        
+        try {
+            const groupId = conversation.id;
+            const formData = {};
+            const encryptedMessages = {};
+            const users = conversation.users;
+            formData['group_id'] = groupId;
+
+            // Get the current logged-in user's master key
+            const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+            if (!masterKey) {
+                console.log("Key expired. Please update key.");
+                return;
+            }
+
+            setMessageSending(true);
+
+            const data = await oweMe("/group/owe-me", formData);
+            const obj = { message: data.message };
+
+            await Promise.all(users.map(async (user) => {
+                if (!user.public_key) {
+                    return;
+                }
+
+                const sharedKeyForOtherUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
+                const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
+
+                encryptedMessages[user.id] = { encryptedMessage: encryptedForOtherUser };
+            }));
+
+            const sharedKeyForCurrentUser = box.before(decodeBase64(currentUser.public_key), decodeBase64(masterKey));
+            const encryptedForCurrentUser = encrypt(sharedKeyForCurrentUser, obj);
+            encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
+
+            formData['message'] = JSON.stringify(encryptedMessages);
+            formData['type'] = "info";
+            formData['message_string'] = data.message;
+
+            const response = await sendMessage("/message", formData);
+
+            newMessage(response.data);
+            setMessageSending(false);
+        } catch (err) {
+            console.log("Error sending message:", err);
+            setMessageSending(false);
+        }
+    }
 
     async function handleSendMessage() {
         if (messageSending || inputMessage.trim() === "") return;
@@ -174,6 +227,7 @@ export default function MessageInput({ conversation }) {
                     />
                     <Divider />
                     <MenuItem
+                        action={onYouOweMeClick}
                         value={"wallet"} // or any value you need to handle the wallet option
                         icon={<Feather name="dollar-sign" size={hp(2.5)} color="#737373" />} // Dollar icon for wallet
                     />

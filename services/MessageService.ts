@@ -11,3 +11,9 @@ export async function sendMessage(route, formData) {
 
     return data;
 }
+
+export async function oweMe(route, formData) {
+    const { data } = await axios.post(route, formData);
+
+    return data;
+}
