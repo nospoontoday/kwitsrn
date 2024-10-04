@@ -16,7 +16,7 @@ export default function ChatRoomScreen({ route }) {
     const [loading, setLoading] = useState(false);  // Loading state
 
     useEffect(() => {
-        setMessages([]);  // Clear previous messages first
+        // setMessages([]);  // Clear previous messages first
         getMessages(linkRoute);
     }, [linkRoute, conversation]);
 

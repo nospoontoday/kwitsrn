@@ -19,45 +19,57 @@ export default function MessageItem({ message }) {
         async function decryptMessage() {
             try {
                 const senderPublicKey = message.sender.public_key;
-
+    
                 if (!senderPublicKey) {
                     console.log("This user needs to log in first.");
                     return;
                 }
-                
+    
                 const masterKey = await AsyncStorage.getItem(MASTER_KEY);
-                
                 if (!masterKey) {
                     console.log("Key expired. Please update key.");
                     return;
                 }
-                
+    
                 const parsedMessages = JSON.parse(message.message);
                 const encryptedMessage = parsedMessages[user.id]?.encryptedMessage;
-                
-                if (encryptedMessage) {
+    
+                if (!encryptedMessage) return;
+    
+                // Helper function to handle decryption
+                const decryptMessageWithKey = (publicKey) => {
+                    const sharedKey = box.before(decodeBase64(publicKey), decodeBase64(masterKey));
+                    return decrypt(sharedKey, encryptedMessage);
+                };
+    
+                let decrypted;
+    
+                // For one-on-one messages
+                if (message.receiver_id) {
                     const isReceiver = user.id === message.receiver_id;
                     const publicKey = isReceiver ? senderPublicKey : user.public_key;
-                
-                    // Decrypt the message using the appropriate public key
-                    const sharedKey = box.before(decodeBase64(publicKey), decodeBase64(masterKey));
-                    const decrypted = decrypt(sharedKey, encryptedMessage);
-
-                    setDecryptedMessage(decrypted);
+                    decrypted = decryptMessageWithKey(publicKey);
+    
+                // For group messages
+                } else if (message.group_id) {
+                    const publicKey = message.sender_id === user.id ? user.public_key : message.sender.public_key;
+                    decrypted = decryptMessageWithKey(publicKey);
                 }
-
+    
+                setDecryptedMessage(decrypted);
+    
             } catch (err) {
                 console.log("Failed to decrypt message:", err);
                 setDecryptedMessage("Decryption failed");
             }
         }
-
-        if(message.message) {
+    
+        if (message.message) {
             decryptMessage();
         } else {
             setDecryptedMessage("No Message");
         }
-    }, [message.message, user.id]);
+    }, [message.message, user.id]);    
  
     return (
         <View style={[
