@@ -10,6 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MASTER_KEY } from "@env";
 import { encrypt } from '../utils/crypto';
 import { decode as decodeBase64 } from '@stablelib/base64';
+import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
+import MenuItem from './CustomMenuItems';
 
 export default function MessageInput({ conversation }) {
     const { user: currentUser } = useContext(AuthContext);
@@ -148,9 +150,41 @@ export default function MessageInput({ conversation }) {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.iconButton}>
-                <AntDesign name="plus" size={hp(2.7)} color="#737373" />
-            </TouchableOpacity>
+            <Menu>
+                <MenuTrigger>
+                    <AntDesign name="plus" size={hp(2.7)} color="#737373" />
+                </MenuTrigger>
+                <MenuOptions
+                    customStyles={{
+                        optionsContainer: {
+                            borderRadius: 10,
+                            borderCurve: "continuous",
+                            marginTop: -60,
+                            marginLeft: 0,
+                            backgroundColor: "white",
+                            shadowOpacity: 0.2,
+                            shadowOffset: {width: 0, height: 0},
+                            width: inputMessage ? 160 : 'auto',
+                        }
+                    }}
+                >
+                    <MenuItem
+                        value={"expense"} // New expense menu item
+                        icon={<Feather name="file-text" size={hp(2.5)} color="#737373" />} // File text icon for receipt
+                    />
+                    <Divider />
+                    <MenuItem
+                        value={"wallet"} // or any value you need to handle the wallet option
+                        icon={<Feather name="dollar-sign" size={hp(2.5)} color="#737373" />} // Dollar icon for wallet
+                    />
+                    <Divider />
+                    <MenuItem
+                        value={"wallet"} // or any value you need to handle the wallet option
+                        icon={<Feather name="credit-card" size={hp(2.5)} color="#737373" />} // Change icon to represent wallet
+                    />
+                </MenuOptions>
+            </Menu>
+
             <TextInput
                 value={inputMessage}
                 placeholder="Type message..."
@@ -200,3 +234,9 @@ const styles = StyleSheet.create({
         marginRight: 8, // Adjust spacing for the plus icon
     },
 });
+
+const Divider = () => {
+    return (
+        <View className="p-[1px] w-full bg-neutral-200" />
+    )
+}

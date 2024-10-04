@@ -9,7 +9,6 @@ export default function MessageList({ loading }) {
 
   // Scroll to bottom when messages are loaded or updated
   useEffect(() => {
-    console.log('Messages updated:', messages);
     if (messages?.length > 0) {
       // Adding a delay to ensure the ScrollView is fully rendered
       setTimeout(() => {
