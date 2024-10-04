@@ -7,10 +7,16 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import CustomKeyboardView from '../components/CustomKeyboardView';
 import MessageInput from '../components/MessageInput';
 import { useStore } from '../store/store';
+import Markdown from 'react-native-markdown-display';
 
 export default function ChatRoomScreen({ route }) {
     const { linkRoute, conversation } = route.params;
+    const copy = `# h1 Heading 8-)
 
+**This is some bold text!**
+
+This is normal text
+`;
     const messages = useStore((state) => state.messages);
     const setMessages = useStore((state) => state.setMessages);
     const [loading, setLoading] = useState(false);  // Loading state

@@ -1,7 +1,7 @@
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 import React, { useContext, useState } from 'react';
-import { Feather } from '@expo/vector-icons';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { Feather, AntDesign } from '@expo/vector-icons';
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import AuthContext from '../contexts/AuthContext';
 import { sendMessage } from '../services/MessageService';
 import { useStore } from '../store/store';
@@ -41,13 +41,13 @@ export default function MessageInput({ conversation }) {
             if (conversation.is_group) {
                 const users = conversation.users;
                 formData['group_id'] = conversation.id;
-                
+
                 // Encrypt the message for each user in the group
                 await Promise.all(users.map(async (user) => {
                     if (!user.public_key) {
                         return;
                     }
-                    
+
                     const sharedKeyForOtherUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
                     const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
 
@@ -91,9 +91,80 @@ export default function MessageInput({ conversation }) {
         }
     }
 
+    async function handleLikeMessage() {
+        
+        try {
+            const encryptedMessages = {};
+            const obj = { message: "👍" };
+            const formData = {
+                message_string: inputMessage
+            };
+        
+            // Get the current logged-in user's master key
+            const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+            if (!masterKey) {
+                console.log("Key expired. Please update key.");
+                return;
+            }
+
+            const sharedKeyForCurrentUser = box.before(decodeBase64(currentUser.public_key), decodeBase64(masterKey));
+            const encryptedForCurrentUser = encrypt(sharedKeyForCurrentUser, obj);
+
+            if (conversation.is_group) {
+                const users = conversation.users;
+                formData['group_id'] = conversation.id;
+
+                // Encrypt the message for each user in the group
+                await Promise.all(users.map(async (user) => {
+                    if (!user.public_key) {
+                        return;
+                    }
+
+                    const sharedKeyForOtherUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
+                    const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
+
+                    // Store encrypted messages
+                    encryptedMessages[user.id] = { encryptedMessage: encryptedForOtherUser };
+                }));
+
+                encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
+            
+                formData['message'] = JSON.stringify(encryptedMessages);
+            } else {
+                
+                // Check if the receiver has a public key
+                if (!conversation.public_key) {
+                    console.log("This user needs to log in first.");
+                    return;
+                }
+
+                // Create shared keys for encryption
+                const sharedKeyForOtherUser = box.before(decodeBase64(conversation.public_key), decodeBase64(masterKey));
+                const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
+
+                // Store encrypted messages
+                encryptedMessages[conversation.id] = { encryptedMessage: encryptedForOtherUser };
+                encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
+
+                formData["message"] = JSON.stringify(encryptedMessages);
+                formData["receiver_id"] = conversation.id;
+            }
+
+            // Send the message to the server
+            const response = await sendMessage("/message", formData);
+
+            newMessage(response.data);
+            setMessageSending(false);
+
+        } catch (err) {
+            setMessageSending(false);
+            console.error(err);
+        }
+    }
+
     return (
         <View className="flex-row mx-3 justify-between bg-white border p-2 border-neutral-300 rounded-full pl-5">
-            <TextInput 
+            <TextInput
                 value={inputMessage}
                 placeholder="Type message..."
                 style={{ fontSize: hp(2) }}
@@ -102,10 +173,14 @@ export default function MessageInput({ conversation }) {
             />
             <TouchableOpacity
                 disabled={messageSending}
-                onPress={handleSendMessage}
+                onPress={inputMessage.trim() === "" ? handleLikeMessage : handleSendMessage}
                 className="bg-neutral-200 p-2 mr-[1px] rounded-full"
             >
-                <Feather name="send" size={hp(2.7)} color="#737373" />
+                {inputMessage.trim() === "" ? (
+                    <AntDesign name="like1" size={hp(2.7)} color="#737373" />  // Render "like" icon if input is empty
+                ) : (
+                    <Feather name="send" size={hp(2.7)} color="#737373" />   // Render "send" icon if there's input
+                )}
             </TouchableOpacity>
         </View>
     );
