@@ -19,7 +19,7 @@ export function FormTextField({ icon, placeholder, errors = [], ...rest }) {
             />
         </View>
 
-        {errors.length > 0 && (
+        {errors?.length > 0 && (
             <View style={styles.errorContainer}>
                 {errors.map((err) => (
                     <Text className="text-right mb-2" key={err} style={styles.error}>{err}</Text>

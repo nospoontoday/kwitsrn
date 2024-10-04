@@ -10,7 +10,6 @@ import { useStore } from "../store/store";
 import Pusher from "pusher-js";
 import { PUSHER_APP_KEY, PUSHER_CLUSTER } from "@env";
 import Constants from "expo-constants";
-// import echo from "../utils/echo";
 
 export default function() {
     const { user, setUser, echo } = useContext(AuthContext);
@@ -33,7 +32,7 @@ export default function() {
                     .join(".")}`;
             }
             
-            const channel = echo.private(channelString)
+            const channel = echo?.private(channelString)
             .error((err) => {
                 console.error(err);
             })
@@ -157,7 +156,7 @@ export default function() {
         <SafeAreaView className="flex-1 bg-white">
             <StatusBar style="light" />
             {
-                sortedConversations.length > 0 ? (
+                sortedConversations?.length > 0 ? (
                     <ChatList sortedConversations={sortedConversations} />
                 ) : (
                     <View className="flex items-center" style={{ top: hp(30)  }} >

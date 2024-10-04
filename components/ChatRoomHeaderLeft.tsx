@@ -3,14 +3,17 @@ import React from 'react'
 import { Entypo } from '@expo/vector-icons'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { Image } from 'expo-image';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ChatRoomHeaderLeft({ conversation }) {
     const isGroup = conversation.is_group;
     const isUser = conversation.is_user;
 
+    const navigation = useNavigation();
+
     return (
         <View className="flex-row items-center gap-4">
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Entypo name="chevron-left" size={hp(4)} color="#737373" />
             </TouchableOpacity>
             <View className="flex-row items-center">

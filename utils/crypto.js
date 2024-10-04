@@ -34,17 +34,17 @@ export const encrypt = ( secretOrSharedKey, json, key ) => {
     return base64FullMessage;
 }
 
+// Create key pair and store as Base64
 export async function createKeyPair() {
     const { publicKey, secretKey } = generateKeyPair();
 
     try {
-        await AsyncStorage.setItem(MASTER_KEY, secretKey.toString());
-
-        await savePublicKey(publicKey.toString());
+        // Save keys as Base64 strings
+        await AsyncStorage.setItem(MASTER_KEY, encodeBase64(secretKey));
+        await savePublicKey(encodeBase64(publicKey));
     } catch (e) {
-        console.log("Key pair not set");
+        console.log("Key pair not set", e);
     }
-
 }
 
 export const decrypt = ( secretOrSharedKey, messageWithNonce, key) => {
@@ -55,7 +55,7 @@ export const decrypt = ( secretOrSharedKey, messageWithNonce, key) => {
 
     const message = messageWithNonceAsUint8Array.slice(
         box.nonceLength,
-        messageWithNonce.length
+        messageWithNonce?.length
     );
 
     const decrypted = key
