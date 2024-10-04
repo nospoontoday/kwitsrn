@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decode as decodeBase64, encode as encodeBase64} from '@stablelib/base64';
 import { box } from "tweetnacl";
 import { decrypt } from '../utils/crypto';
+import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 
 export default function MessageItem({ message }) {
     const { user } = useContext(AuthContext);
@@ -56,7 +57,7 @@ export default function MessageItem({ message }) {
                     decrypted = decryptMessageWithKey(publicKey);
                 }
     
-                setDecryptedMessage(decrypted);
+                setDecryptedMessage(decrypted.message);
     
             } catch (err) {
                 console.log("Failed to decrypt message:", err);
@@ -117,9 +118,14 @@ export default function MessageItem({ message }) {
                         ? { alignSelf: 'flex-end', backgroundColor: 'white', borderColor: '#D3D3D3', borderWidth: 1 }
                         : { alignSelf: 'flex-start', backgroundColor: '#E0E7FF', borderColor: '#C3DAFE', borderWidth: 1 }
                 ]}>
-                    <Text style={{ fontSize: hp(1.9) }}>
-                        {decryptedMessage?.message}
-                    </Text>
+                    <Markdown
+                        markdownit={
+                            MarkdownIt({typographer: true}).disable([ 'link', 'image' ])
+                        }
+                        style={{ fontSize: hp(1.9) }}
+                    >
+                        {decryptedMessage}
+                    </Markdown>
                 </View>
             </View>
         </View>
