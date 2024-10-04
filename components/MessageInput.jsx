@@ -12,7 +12,7 @@ import { encrypt } from '../utils/crypto';
 import { decode as decodeBase64 } from '@stablelib/base64';
 
 export default function MessageInput({ conversation }) {
-    const { user } = useContext(AuthContext);
+    const { user: currentUser } = useContext(AuthContext);
     const [inputMessage, setInputMessage] = useState(""); // Local state for input
     const [messageSending, setMessageSending] = useState(false);
     const newMessage = useStore((state) => state.newMessage);
@@ -23,12 +23,42 @@ export default function MessageInput({ conversation }) {
         try {
             setMessageSending(true);
             const encryptedMessages = {};
+            const obj = { message: inputMessage };
+            const formData = {
+                message_string: inputMessage
+            };
+
+            // Get the current logged-in user's master key
+            const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+            if (!masterKey) {
+                console.log("Key expired. Please update key.");
+                return;
+            }
+
+            const sharedKeyForCurrentUser = box.before(decodeBase64(currentUser.public_key), decodeBase64(masterKey));
+            const encryptedForCurrentUser = encrypt(sharedKeyForCurrentUser, obj);
 
             if (conversation.is_group) {
                 const users = conversation.users;
-                // @TODO: Implement group message encryption
+                formData['group_id'] = conversation.id;
+                
+                // Encrypt the message for each user in the group
+                await Promise.all(users.map(async (user) => {
+                    if (!user.public_key) {
+                        return;
+                    }
+                    
+                    const sharedKeyForOtherUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
+                    const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
+
+                    // Store encrypted messages
+                    encryptedMessages[user.id] = { encryptedMessage: encryptedForOtherUser };
+                }));
+
+                encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
+
+                formData['message'] = JSON.stringify(encryptedMessages);
             } else {
-                const obj = { message: inputMessage };
 
                 // Check if the receiver has a public key
                 if (!conversation.public_key) {
@@ -36,37 +66,26 @@ export default function MessageInput({ conversation }) {
                     return;
                 }
 
-                // Get the current logged-in user's master key
-                const masterKey = await AsyncStorage.getItem(MASTER_KEY);
-                if (!masterKey) {
-                    console.log("Key expired. Please update key.");
-                    return;
-                }
-
                 // Create shared keys for encryption
                 const sharedKeyForOtherUser = box.before(decodeBase64(conversation.public_key), decodeBase64(masterKey));
                 const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
 
-                const sharedKeyForCurrentUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
-                const encryptedForCurrentUser = encrypt(sharedKeyForCurrentUser, obj);
-
                 // Store encrypted messages
                 encryptedMessages[conversation.id] = { encryptedMessage: encryptedForOtherUser };
-                encryptedMessages[user.id] = { encryptedMessage: encryptedForCurrentUser };
+                encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
 
-                // Send the message to the server
-                const response = await sendMessage("/message", {
-                    message: JSON.stringify(encryptedMessages),
-                    message_string: inputMessage,
-                    receiver_id: conversation.id,
-                });
-
-                newMessage(response.data);
-                setInputMessage(""); // Reset input field
-                setMessageSending(false);
+                formData["message"] = JSON.stringify(encryptedMessages);
+                formData["receiver_id"] = conversation.id;
             }
+
+            // Send the message to the server
+            const response = await sendMessage("/message", formData);
+
+            newMessage(response.data);
+            setInputMessage(""); // Reset input field
+            setMessageSending(false);
         } catch (e) {
-            console.log("Error sending message:", e);
+            console.log("Error sending message:", e.response);
             setInputMessage(""); // Reset input field on error
             setMessageSending(false);
         }
