@@ -1,4 +1,4 @@
-import { View, TextInput, TouchableOpacity } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useContext, useState } from 'react';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
@@ -13,7 +13,7 @@ import { decode as decodeBase64 } from '@stablelib/base64';
 
 export default function MessageInput({ conversation }) {
     const { user: currentUser } = useContext(AuthContext);
-    const [inputMessage, setInputMessage] = useState(""); // Local state for input
+    const [inputMessage, setInputMessage] = useState(""); 
     const [messageSending, setMessageSending] = useState(false);
     const newMessage = useStore((state) => state.newMessage);
 
@@ -42,7 +42,6 @@ export default function MessageInput({ conversation }) {
                 const users = conversation.users;
                 formData['group_id'] = conversation.id;
 
-                // Encrypt the message for each user in the group
                 await Promise.all(users.map(async (user) => {
                     if (!user.public_key) {
                         return;
@@ -51,7 +50,6 @@ export default function MessageInput({ conversation }) {
                     const sharedKeyForOtherUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
                     const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
 
-                    // Store encrypted messages
                     encryptedMessages[user.id] = { encryptedMessage: encryptedForOtherUser };
                 }));
 
@@ -59,18 +57,14 @@ export default function MessageInput({ conversation }) {
 
                 formData['message'] = JSON.stringify(encryptedMessages);
             } else {
-
-                // Check if the receiver has a public key
                 if (!conversation.public_key) {
                     console.log("This user needs to log in first.");
                     return;
                 }
 
-                // Create shared keys for encryption
                 const sharedKeyForOtherUser = box.before(decodeBase64(conversation.public_key), decodeBase64(masterKey));
                 const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
 
-                // Store encrypted messages
                 encryptedMessages[conversation.id] = { encryptedMessage: encryptedForOtherUser };
                 encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
 
@@ -78,21 +72,19 @@ export default function MessageInput({ conversation }) {
                 formData["receiver_id"] = conversation.id;
             }
 
-            // Send the message to the server
             const response = await sendMessage("/message", formData);
 
             newMessage(response.data);
-            setInputMessage(""); // Reset input field
+            setInputMessage(""); 
             setMessageSending(false);
         } catch (e) {
             console.log("Error sending message:", e.response);
-            setInputMessage(""); // Reset input field on error
+            setInputMessage(""); 
             setMessageSending(false);
         }
     }
 
     async function handleLikeMessage() {
-        
         try {
             const encryptedMessages = {};
             const obj = { message: "👍" };
@@ -100,7 +92,6 @@ export default function MessageInput({ conversation }) {
                 message_string: inputMessage
             };
         
-            // Get the current logged-in user's master key
             const masterKey = await AsyncStorage.getItem(MASTER_KEY);
             if (!masterKey) {
                 console.log("Key expired. Please update key.");
@@ -114,7 +105,6 @@ export default function MessageInput({ conversation }) {
                 const users = conversation.users;
                 formData['group_id'] = conversation.id;
 
-                // Encrypt the message for each user in the group
                 await Promise.all(users.map(async (user) => {
                     if (!user.public_key) {
                         return;
@@ -123,7 +113,6 @@ export default function MessageInput({ conversation }) {
                     const sharedKeyForOtherUser = box.before(decodeBase64(user.public_key), decodeBase64(masterKey));
                     const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
 
-                    // Store encrypted messages
                     encryptedMessages[user.id] = { encryptedMessage: encryptedForOtherUser };
                 }));
 
@@ -131,18 +120,14 @@ export default function MessageInput({ conversation }) {
             
                 formData['message'] = JSON.stringify(encryptedMessages);
             } else {
-                
-                // Check if the receiver has a public key
                 if (!conversation.public_key) {
                     console.log("This user needs to log in first.");
                     return;
                 }
 
-                // Create shared keys for encryption
                 const sharedKeyForOtherUser = box.before(decodeBase64(conversation.public_key), decodeBase64(masterKey));
                 const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
 
-                // Store encrypted messages
                 encryptedMessages[conversation.id] = { encryptedMessage: encryptedForOtherUser };
                 encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
 
@@ -150,7 +135,6 @@ export default function MessageInput({ conversation }) {
                 formData["receiver_id"] = conversation.id;
             }
 
-            // Send the message to the server
             const response = await sendMessage("/message", formData);
 
             newMessage(response.data);
@@ -163,25 +147,56 @@ export default function MessageInput({ conversation }) {
     }
 
     return (
-        <View className="flex-row mx-3 justify-between bg-white border p-2 border-neutral-300 rounded-full pl-5">
+        <View style={styles.container}>
+            <TouchableOpacity style={styles.iconButton}>
+                <AntDesign name="plus" size={hp(2.7)} color="#737373" />
+            </TouchableOpacity>
             <TextInput
                 value={inputMessage}
                 placeholder="Type message..."
-                style={{ fontSize: hp(2) }}
-                className="flex-1 mr-2"
+                style={styles.input}
                 onChangeText={(text) => setInputMessage(text)}
             />
             <TouchableOpacity
                 disabled={messageSending}
                 onPress={inputMessage.trim() === "" ? handleLikeMessage : handleSendMessage}
-                className="bg-neutral-200 p-2 mr-[1px] rounded-full"
+                style={styles.sendButton}
             >
                 {inputMessage.trim() === "" ? (
-                    <AntDesign name="like1" size={hp(2.7)} color="#737373" />  // Render "like" icon if input is empty
+                    <AntDesign name="like1" size={hp(2.7)} color="#737373" />
                 ) : (
-                    <Feather name="send" size={hp(2.7)} color="#737373" />   // Render "send" icon if there's input
+                    <Feather name="send" size={hp(2.7)} color="#737373" />
                 )}
             </TouchableOpacity>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        alignItems: 'center', // Vertically center items
+        marginHorizontal: 12,
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#d1d5db', // Equivalent to neutral-300
+        borderRadius: 50,
+        paddingVertical: 8, // Add padding for vertical centering
+        paddingHorizontal: 12, // Add padding for horizontal spacing
+    },
+    input: {
+        flex: 1,
+        fontSize: hp(2),
+        marginHorizontal: 8, // Spacing between input and buttons
+        height: hp(5), // Set height to align with icons
+    },
+    sendButton: {
+        backgroundColor: '#e5e7eb', // Equivalent to neutral-200
+        padding: 8,
+        borderRadius: 50,
+        marginLeft: 4, // Adjust spacing if necessary
+    },
+    iconButton: {
+        marginRight: 8, // Adjust spacing for the plus icon
+    },
+});
