@@ -7,37 +7,30 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import CustomKeyboardView from '../components/CustomKeyboardView';
 import MessageInput from '../components/MessageInput';
 import { useStore } from '../store/store';
-import Markdown from 'react-native-markdown-display';
 
 export default function ChatRoomScreen({ route }) {
     const { linkRoute, conversation } = route.params;
-    const copy = `# h1 Heading 8-)
 
-**This is some bold text!**
-
-This is normal text
-`;
-    const messages = useStore((state) => state.messages);
-    const setMessages = useStore((state) => state.setMessages);
+    const messages = useStore((state) => state.messages);  // Zustand state
+    const setMessages = useStore((state) => state.setMessages);  // Zustand state setter
     const [loading, setLoading] = useState(false);  // Loading state
 
     useEffect(() => {
-        // setMessages([]);  // Clear previous messages first
-        getMessages(linkRoute);
+        getMessages(linkRoute);  // Trigger message loading on route change
     }, [linkRoute, conversation]);
 
     async function getMessages(linkRoute) {
         try {
-            setLoading(true);  // Start loading
-            const data = await loadMessages(linkRoute);
+            setLoading(true);  // Start loading indicator
+            const data = await loadMessages(linkRoute);  // Fetch messages
     
-            // Ensure messages is always an array
+            // Ensure messages is always an array and reverse it
             const messages = data?.messages ? data.messages.reverse() : [];
-            setMessages(messages);  // Update state with reversed messages
+            setMessages(messages);  // Update Zustand state
         } catch (e) {
-            console.error(e);  // Handle error
+            console.error(e);  // Log error
         } finally {
-            setLoading(false);  // End loading
+            setLoading(false);  // End loading indicator
         }
     }
 
@@ -48,7 +41,7 @@ This is normal text
                 <View style={{ height: 3, borderBottomWidth: 1, borderBottomColor: '#D1D5DB' }} />
                 <View style={{ flex: 1, justifyContent: 'space-between', backgroundColor: '#F3F4F6', overflow: 'visible' }}>
                     {loading ? (
-                        <Text>Loading...</Text>  // Show loading text
+                        <Text>Loading...</Text> 
                     ) : (
                         <View style={{ flex: 1 }}>
                             <MessageList loading={loading} />
