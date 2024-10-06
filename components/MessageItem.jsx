@@ -71,7 +71,7 @@ export default function MessageItem({ message }) {
             setDecryptedMessage("No Message");
         }
     }, [message.message, user.id]);    
- 
+
     return (
         <View style={[
             { marginBottom: 12, flexDirection: 'row' },

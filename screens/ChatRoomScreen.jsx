@@ -17,7 +17,7 @@ export default function ChatRoomScreen({ route }) {
 
     useEffect(() => {
         getMessages(linkRoute);  // Trigger message loading on route change
-    }, [linkRoute, conversation]);
+    }, [linkRoute, conversation]); // Adding both dependencies
 
     async function getMessages(linkRoute) {
         try {
@@ -26,6 +26,7 @@ export default function ChatRoomScreen({ route }) {
     
             // Ensure messages is always an array and reverse it
             const messages = data?.messages ? data.messages.reverse() : [];
+
             setMessages(messages);  // Update Zustand state
         } catch (e) {
             console.error(e);  // Log error

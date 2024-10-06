@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { getCurrencies } from "../services/CurrencyService";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native"; // Import useNavigation
 import UserPicker from "../components/UserPicker";
 import AuthContext from "../contexts/AuthContext";
 import { storeExpense } from "../services/ExpenseService";
@@ -14,11 +14,12 @@ import { encrypt } from '../utils/crypto';
 import { box } from "tweetnacl";
 import { sendMessage } from "../services/MessageService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useStore } from '../store/store';
 
 export default function AddExpenseScreen() {
     const { user: currentUser } = useContext(AuthContext);
-
     const route = useRoute();
+    const navigation = useNavigation(); // Get the navigation object
     const { conversation } = route.params;
 
     const [formData, setFormData] = useState({
@@ -36,12 +37,12 @@ export default function AddExpenseScreen() {
     const [error, setError] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [group, setGroup] = useState({});
+    const newMessage = useStore((state) => state.newMessage);
 
     const fetchCurrencies = async () => {
         try {
             const response = await getCurrencies('/currencies');
             setCurrencies(response.data);
-
         } catch (error) {
             setError("Failed to fetch currencies");
             console.error("Failed to fetch currencies", error);
@@ -49,11 +50,11 @@ export default function AddExpenseScreen() {
             setLoading(false);
         }
     };
-    
+
     useEffect(() => {
         fetchCurrencies();
 
-        if(conversation.is_group) {
+        if (conversation.is_group) {
             setGroup(conversation);
 
             // If there's a default currency in the conversation, set it
@@ -70,14 +71,11 @@ export default function AddExpenseScreen() {
                     .map((u) => u.id), // Map to get user ids
             }));
         }
-
-
-    }, []);
-    
+    }, [conversation]);
 
     const createOrUpdateExpense = async () => {
         setProcessing(true);
-    
+
         try {
             // Get the current logged-in user's master key
             const masterKey = await AsyncStorage.getItem(MASTER_KEY);
@@ -96,9 +94,7 @@ export default function AddExpenseScreen() {
                 user_ids: JSON.stringify(formData.user_ids),
                 currency: formData.currency,
             };
-    
-            console.log(expenseData); // Log the expenseData
-    
+
             const response = await storeExpense("/expense", expenseData);
 
             const users = conversation.users;
@@ -119,13 +115,21 @@ export default function AddExpenseScreen() {
             const sharedKeyForCurrentUser = box.before(decodeBase64(currentUser.public_key), decodeBase64(masterKey));
             const encryptedForCurrentUser = encrypt(sharedKeyForCurrentUser, obj);
             encryptedMessages[currentUser.id] = { encryptedMessage: encryptedForCurrentUser };
-    
+
             expenseData.expense_id = response.expense_id;
             expenseData.message = JSON.stringify(encryptedMessages);
             expenseData.type = "expense";
             expenseData.message_string = response.message;
-            console.log("expenseData", expenseData);
+
             const data = await sendMessage("/message", expenseData);
+
+            // Redirect to ChatRoom after successfully creating the expense
+            const linkRoute = conversation.is_group ? `/group/${conversation.id}` : `/user/${conversation.id}`;
+            navigation.navigate('ChatRoom', {
+                conversation,
+                linkRoute,
+            });
+            newMessage(data.data);
             setProcessing(false);
 
         } catch (err) {
@@ -133,7 +137,6 @@ export default function AddExpenseScreen() {
             setProcessing(false);
         }
     };
-    
 
     return (
         <ScrollView style={{ padding: 20 }}>
@@ -182,8 +185,6 @@ export default function AddExpenseScreen() {
                     </Picker>
                 )}
             </View>
-
-
 
             {/* Description Input */}
             <View style={{ marginBottom: 20 }}>

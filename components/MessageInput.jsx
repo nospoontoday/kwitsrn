@@ -275,11 +275,6 @@ export default function MessageInput({ conversation }) {
                     }}
                 >
                     <MenuItem
-                        value={"expense"} // New expense menu item
-                        icon={<Feather name="file-text" size={hp(2.5)} color="#737373" />} // File text icon for receipt
-                    />
-                    <Divider />
-                    <MenuItem
                         action={onYouOweMeClick}
                         value={"uome"} // or any value you need to handle the wallet option
                         icon={<Feather name="dollar-sign" size={hp(2.5)} color="#737373" />} // Dollar icon for wallet

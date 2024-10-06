@@ -15,7 +15,6 @@ export async function storeExpense(route, formData) {
             user_ids: userIdsArray // Ensure user_ids is an array
         };
 
-        console.log("Sending data to", route, "with payload:", payload);
         const { data } = await axios.post(route, payload);
         return data;
     } catch (error) {
