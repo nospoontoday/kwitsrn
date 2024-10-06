@@ -111,26 +111,17 @@ export default function MessageItem({ message }) {
                                 await destroyMessage(`/message/${message.id}`);
                                 deleteMessage(message.id);
                                 setIsDeleted(true);
-                                // Implement your message deletion logic here
-                                console.log(`Deleting message with ID: ${message.id}`);
-    
-                                // After deletion logic, you might want to update the state or notify the user
                             } catch (error) {
                                 console.error("Failed to delete message:", error);
-                                // Optionally show an error message to the user
                             }
                         },
                     },
                 ],
-                { cancelable: true } // Allows dismissal of the alert by tapping outside
+                { cancelable: true }
             );
-        } else {
-            // Implement your deletion logic directly if no expense_id exists
-            console.log(`Deleting message with ID: ${message.id}`);
         }
     };
 
-    // Handle the swipe gesture
     const onGestureEvent = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
         { useNativeDriver: true }
@@ -139,7 +130,6 @@ export default function MessageItem({ message }) {
     const onHandlerStateChange = ({ nativeEvent }) => {
         if (nativeEvent.state === State.END) {
             if (nativeEvent.translationX < -50) {
-                // If swiped enough to the left, show icons and lock position
                 Animated.timing(translateX, {
                     toValue: -100,
                     duration: 200,
@@ -151,7 +141,6 @@ export default function MessageItem({ message }) {
                     useNativeDriver: true,
                 }).start();
             } else {
-                // Snap back if not swiped far enough
                 Animated.timing(translateX, {
                     toValue: 0,
                     duration: 200,
@@ -280,6 +269,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingRight: 20,
-        width: 100, // Enough space for the icons
+        width: 100,
     },
 });
