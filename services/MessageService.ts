@@ -23,3 +23,13 @@ export async function oweYou(route, formData) {
 
     return data;
 }
+
+export async function destroyMessage(route) {
+    await axios.delete(route)
+        .then((res) => {
+
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}

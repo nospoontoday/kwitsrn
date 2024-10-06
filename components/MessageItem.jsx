@@ -1,4 +1,4 @@
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { View, Text, Animated, StyleSheet, Alert } from 'react-native';
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { formatMessageDateLong } from '../helpers/date';
@@ -12,15 +12,33 @@ import { decrypt } from '../utils/crypto';
 import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons'; // For showing icons
+import { destroyMessage } from '../services/MessageService';
+import { useStore } from '../store/store';
 
 export default function MessageItem({ message }) {
     const { user } = useContext(AuthContext);
     const isUserSender = user.id === message.sender_id;
     const [decryptedMessage, setDecryptedMessage] = useState("Decrypting...");
+    const deleteMessage = useStore((state) => state.deleteMessage);
 
     // Animation variables
     const translateX = useRef(new Animated.Value(0)).current; // For moving the message view left
     const iconOpacity = useRef(new Animated.Value(0)).current; // For controlling the visibility of the icons
+    const [isDeleted, setIsDeleted] = useState(false);
+
+    useEffect(() => {
+        // Reset the swipe position if the message is deleted
+        if (isDeleted) {
+            Animated.timing(translateX, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }).start(() => {
+                // Reset deleted state after the animation is done
+                setIsDeleted(false);
+            });
+        }
+    }, [isDeleted]); // Run the effect when isDeleted changes
 
     useEffect(() => {
         async function decryptMessage() {
@@ -73,6 +91,45 @@ export default function MessageItem({ message }) {
         }
     }, [message.message, user.id]);
 
+    const handleDeleteMessage = async (message) => {
+        // Check if the message has an associated expense ID
+        console.log("MESSAGE:", message);
+        if (message.expense_id) {
+            Alert.alert(
+                "Confirm Deletion",
+                "Are you sure you want to delete this expense?",
+                [
+                    {
+                        text: "Cancel",
+                        onPress: () => console.log("Deletion canceled"),
+                        style: "cancel", // Adds a cancel style to the button
+                    },
+                    {
+                        text: "Delete",
+                        onPress: async () => {
+                            try {
+                                await destroyMessage(`/message/${message.id}`);
+                                deleteMessage(message.id);
+                                setIsDeleted(true);
+                                // Implement your message deletion logic here
+                                console.log(`Deleting message with ID: ${message.id}`);
+    
+                                // After deletion logic, you might want to update the state or notify the user
+                            } catch (error) {
+                                console.error("Failed to delete message:", error);
+                                // Optionally show an error message to the user
+                            }
+                        },
+                    },
+                ],
+                { cancelable: true } // Allows dismissal of the alert by tapping outside
+            );
+        } else {
+            // Implement your deletion logic directly if no expense_id exists
+            console.log(`Deleting message with ID: ${message.id}`);
+        }
+    };
+
     // Handle the swipe gesture
     const onGestureEvent = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
@@ -112,7 +169,13 @@ export default function MessageItem({ message }) {
     return (
         <View style={{ marginBottom: 12 }}>
             <Animated.View style={[styles.iconContainer, { opacity: iconOpacity }]}>
-                <FontAwesome name="trash" size={24} color="red" style={{ marginHorizontal: 10 }} />
+                <FontAwesome 
+                    name="trash" 
+                    size={24} 
+                    color="red" 
+                    style={{ marginHorizontal: 10 }} 
+                    onPress={() => handleDeleteMessage(message)}
+                />
                 <FontAwesome name="edit" size={24} color="blue" style={{ marginHorizontal: 10 }} />
             </Animated.View>
     
@@ -156,7 +219,7 @@ export default function MessageItem({ message }) {
                         </Text>
                     </View>
     
-                    {isUserSender && message.expense_id && ( // Only render the gesture handler if the user is the sender
+                    {isUserSender && message.expense_id ? (
                         <PanGestureHandler
                             onGestureEvent={onGestureEvent}
                             onHandlerStateChange={onHandlerStateChange}
@@ -164,9 +227,12 @@ export default function MessageItem({ message }) {
                             <Animated.View
                                 style={[
                                     { padding: 12, borderRadius: 20 },
-                                    isUserSender
-                                        ? { alignSelf: 'flex-end', backgroundColor: 'white', borderColor: '#D3D3D3', borderWidth: 1 }
-                                        : { alignSelf: 'flex-start', backgroundColor: '#E0E7FF', borderColor: '#C3DAFE', borderWidth: 1 },
+                                    {
+                                        alignSelf: 'flex-end',
+                                        backgroundColor: 'white',
+                                        borderColor: '#D3D3D3',
+                                        borderWidth: 1,
+                                    },
                                 ]}
                             >
                                 <Markdown
@@ -177,14 +243,16 @@ export default function MessageItem({ message }) {
                                 </Markdown>
                             </Animated.View>
                         </PanGestureHandler>
-                    )}
-                    {!isUserSender && ( // For non-senders, show the message without gesture handling
+                    ) : (
                         <View
                             style={[
                                 { padding: 12, borderRadius: 20 },
-                                isUserSender
-                                    ? { alignSelf: 'flex-end', backgroundColor: 'white', borderColor: '#D3D3D3', borderWidth: 1 }
-                                    : { alignSelf: 'flex-start', backgroundColor: '#E0E7FF', borderColor: '#C3DAFE', borderWidth: 1 },
+                                {
+                                    alignSelf: isUserSender ? 'flex-end' : 'flex-start',
+                                    backgroundColor: isUserSender ? 'white' : '#E0E7FF',
+                                    borderColor: isUserSender ? '#D3D3D3' : '#C3DAFE',
+                                    borderWidth: 1,
+                                },
                             ]}
                         >
                             <Markdown
@@ -195,6 +263,7 @@ export default function MessageItem({ message }) {
                             </Markdown>
                         </View>
                     )}
+
                 </View>
             </Animated.View>
         </View>

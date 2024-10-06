@@ -12,6 +12,7 @@ type ChatActions = {
     newMessage: (message: Message) => void;
     setMessages: (messages: Message[]) => void;
     setConversations: (conversations: Conversation[]) => void;
+    deleteMessage: (messageId: string) => void;
 }
 
 export type ChatSlice = ChatState & ChatActions;
@@ -28,7 +29,7 @@ export const createChatSlice: StateCreator<
     newMessage: (message: Message) => {
         set((state) => {
             state.messages.push(message);
-        })
+        });
     },
     setMessages: (messages: Message[]) => {
         set((state) => {
@@ -38,6 +39,11 @@ export const createChatSlice: StateCreator<
     setConversations: (conversations: Conversation[]) => {
         set((state) => {
             state.conversations = conversations;
+        });
+    },
+    deleteMessage: (messageId: string) => {
+        set((state) => {
+            state.messages = state.messages.filter(message => message.id !== messageId);
         });
     },
 });
