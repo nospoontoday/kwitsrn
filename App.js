@@ -16,6 +16,7 @@ import ChatRoomHeaderLeft from "./components/ChatRoomHeaderLeft";
 import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
 import { setEchoInstance } from "./utils/echo";
 import AddExpenseScreen from "./screens/AddExpenseScreen";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';  // Import this
 
 const Stack = createNativeStackNavigator();
 
@@ -27,7 +28,7 @@ export default function App() {
   useEffect(() => {
     async function runEffect() {
       try {
-        token = await getToken();
+        const token = await getToken();
         if (token == null) {
           setUser(null);
           setStatus("idle");
@@ -53,53 +54,51 @@ export default function App() {
   }
 
   return (
-    <MenuProvider>
-      <AuthContext.Provider value={{ user, setUser, echo }}>
-        <NavigationContainer>
-          <Stack.Navigator>
-            {user ? (
-              <>
-                <Stack.Screen 
-                  name="Home" 
-                  component={HomeScreen} 
-                  options={{
-                    header: () => <HomeHeader />
-                  }} 
-                />
-                <Stack.Screen 
-                  name="ChatRoom" 
-                  component={ChatRoomScreen}
-                  options={({ route }) => ({
-                    title: '',
-                    headerShadowVisible: false,
-                    // header: () => <ChatRoomHeader conversation={route.params.conversation} />,
-                    headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
-                    headerRight: () => <ChatRoomHeaderRight conversation={route.params.conversation} />,
-                  })}
-                />
-                <Stack.Screen 
-                  name="AddExpense" 
-                  component={AddExpenseScreen}
-                  options={({ route }) => ({
-                    title: '',
-                    headerShadowVisible: false,
-                    // header: () => <ChatRoomHeader conversation={route.params.conversation} />,
-                    headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
-                    // headerRight: () => <ChatRoomHeaderRight conversation={route.params.conversation} />,
-                  })}
-                />
-              </>
-            ) : (
-              <>
-                <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
-                <Stack.Screen name="Create account" component={RegisterScreen} options={{headerShown: false}} />
-                <Stack.Screen name="Forgot password" component={ForgotPasswordScreen} />
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </AuthContext.Provider>
-    </MenuProvider>
-  )
-
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <MenuProvider>
+        <AuthContext.Provider value={{ user, setUser, echo }}>
+          <NavigationContainer>
+            <Stack.Navigator>
+              {user ? (
+                <>
+                  <Stack.Screen 
+                    name="Home" 
+                    component={HomeScreen} 
+                    options={{
+                      header: () => <HomeHeader />
+                    }} 
+                  />
+                  <Stack.Screen 
+                    name="ChatRoom" 
+                    component={ChatRoomScreen}
+                    options={({ route }) => ({
+                      title: '',
+                      headerShadowVisible: false,
+                      headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
+                      headerRight: () => <ChatRoomHeaderRight conversation={route.params.conversation} />,
+                    })}
+                  />
+                  <Stack.Screen 
+                    name="AddExpense" 
+                    component={AddExpenseScreen}
+                    options={({ route }) => ({
+                      title: '',
+                      headerShadowVisible: false,
+                      headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
+                    })}
+                  />
+                </>
+              ) : (
+                <>
+                  <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
+                  <Stack.Screen name="Create account" component={RegisterScreen} options={{headerShown: false}} />
+                  <Stack.Screen name="Forgot password" component={ForgotPasswordScreen} />
+                </>
+              )}
+            </Stack.Navigator>
+          </NavigationContainer>
+        </AuthContext.Provider>
+      </MenuProvider>
+    </GestureHandlerRootView>
+  );
 }
