@@ -15,6 +15,7 @@ import ChatRoomScreen from "./screens/ChatRoomScreen";
 import ChatRoomHeaderLeft from "./components/ChatRoomHeaderLeft";
 import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
 import { setEchoInstance } from "./utils/echo";
+import AddExpenseScreen from "./screens/AddExpenseScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -74,6 +75,17 @@ export default function App() {
                     // header: () => <ChatRoomHeader conversation={route.params.conversation} />,
                     headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
                     headerRight: () => <ChatRoomHeaderRight conversation={route.params.conversation} />,
+                  })}
+                />
+                <Stack.Screen 
+                  name="AddExpense" 
+                  component={AddExpenseScreen}
+                  options={({ route }) => ({
+                    title: '',
+                    headerShadowVisible: false,
+                    // header: () => <ChatRoomHeader conversation={route.params.conversation} />,
+                    headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
+                    // headerRight: () => <ChatRoomHeaderRight conversation={route.params.conversation} />,
                   })}
                 />
               </>
