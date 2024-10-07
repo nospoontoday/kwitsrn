@@ -19,6 +19,7 @@ import ChatRoomHeaderLeft from "./components/ChatRoomHeaderLeft";
 import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
 import { setEchoInstance } from "./utils/echo";
 import { Ionicons } from '@expo/vector-icons'; // Import icons
+import FriendsScreen from "./screens/FriendsScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator(); // Create bottom tab navigator
@@ -46,10 +47,16 @@ function HomeTabs() {
         name="Chat"
         component={HomeScreen}
         options={{
-          header: () => <HomeHeader />,
+          header: () => <HomeHeader title="Chat" />,  // Pass "Chat" as the title
         }}
       />
-      <Tab.Screen name="Friends" component={LoginScreen} options={{ title: 'Friends' }} />
+      <Tab.Screen 
+        name="Friends" 
+        component={FriendsScreen} 
+        options={{
+          header: () => <HomeHeader title="Friends" />,  // Pass "Friends" as the title
+        }} 
+      />
     </Tab.Navigator>
   );
 }
@@ -118,6 +125,10 @@ export default function App() {
                       headerShadowVisible: false,
                       headerLeft: () => <ChatRoomHeaderLeft conversation={route.params.conversation} />,
                     })}
+                  />
+                  <Stack.Screen 
+                    name="Friends" 
+                    component={FriendsScreen}
                   />
                 </>
               ) : (
