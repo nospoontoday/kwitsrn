@@ -165,7 +165,6 @@ export default function MessageItem({ message }) {
                     style={{ marginHorizontal: 10 }} 
                     onPress={() => handleDeleteMessage(message)}
                 />
-                <FontAwesome name="edit" size={24} color="blue" style={{ marginHorizontal: 10 }} />
             </Animated.View>
     
             <Animated.View
