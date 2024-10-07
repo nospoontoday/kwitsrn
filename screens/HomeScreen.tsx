@@ -7,9 +7,9 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import ChatList from "../components/ChatList";
 import { loadConversations } from "../services/ConversationService";
 import { useStore } from "../store/store";
-import Pusher from "pusher-js";
-import { PUSHER_APP_KEY, PUSHER_CLUSTER } from "@env";
 import Constants from "expo-constants";
+import Icon from "react-native-vector-icons/Ionicons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 export default function() {
     const { user, setUser, echo } = useContext(AuthContext);
@@ -141,16 +141,6 @@ export default function() {
             console.error("Failed to decrypt conversations:", error);
         }
     };
-
-    async function handleLogout() {
-        try {
-            await logout();
-        } catch (e) {
-            console.log(e.response.data);
-        }
-
-        setUser(null);
-    }
 
     return (
         <SafeAreaView className="flex-1 bg-white">

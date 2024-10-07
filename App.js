@@ -1,24 +1,58 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"; // Import bottom tab navigator
 import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
-import { useEffect, useState } from "react";
-import { loadUser } from "./services/AuthService";
-import AuthContext from "./contexts/AuthContext";
-import SplashScreen from "./screens/SplashScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
-import { getToken } from "./services/TokenService";
-import HomeHeader from "./components/HomeHeader";
-import { MenuProvider } from "react-native-popup-menu";
 import ChatRoomScreen from "./screens/ChatRoomScreen";
+import AddExpenseScreen from "./screens/AddExpenseScreen";
+import { useEffect, useState } from "react";
+import { loadUser } from "./services/AuthService";
+import { getToken } from "./services/TokenService";
+import AuthContext from "./contexts/AuthContext";
+import SplashScreen from "./screens/SplashScreen";
+import { MenuProvider } from "react-native-popup-menu";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import HomeHeader from "./components/HomeHeader";
 import ChatRoomHeaderLeft from "./components/ChatRoomHeaderLeft";
 import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
 import { setEchoInstance } from "./utils/echo";
-import AddExpenseScreen from "./screens/AddExpenseScreen";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';  // Import this
+import { Ionicons } from '@expo/vector-icons'; // Import icons
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator(); // Create bottom tab navigator
+
+function HomeTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Chat') {
+            iconName = focused ? "chatbubble" : "chatbubble-outline";
+          } else if (route.name === 'Friends') {
+            iconName = focused ? 'people' : 'people-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'tomato',
+        tabBarInactiveTintColor: 'gray',
+      })}
+    >
+      <Tab.Screen
+        name="Chat"
+        component={HomeScreen}
+        options={{
+          header: () => <HomeHeader />,
+        }}
+      />
+      <Tab.Screen name="Friends" component={LoginScreen} options={{ title: 'Friends' }} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   const [user, setUser] = useState();
@@ -49,8 +83,8 @@ export default function App() {
     runEffect();
   }, []);
 
-  if(status === "loading") {
-    return <SplashScreen />
+  if (status === "loading") {
+    return <SplashScreen />;
   }
 
   return (
@@ -62,11 +96,9 @@ export default function App() {
               {user ? (
                 <>
                   <Stack.Screen 
-                    name="Home" 
-                    component={HomeScreen} 
-                    options={{
-                      header: () => <HomeHeader />
-                    }} 
+                    name="HomeTabs" 
+                    component={HomeTabs} // Use the HomeTabs component here
+                    options={{ headerShown: false }}
                   />
                   <Stack.Screen 
                     name="ChatRoom" 
@@ -90,8 +122,8 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
-                  <Stack.Screen name="Create account" component={RegisterScreen} options={{headerShown: false}} />
+                  <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                  <Stack.Screen name="Create account" component={RegisterScreen} options={{ headerShown: false }} />
                   <Stack.Screen name="Forgot password" component={ForgotPasswordScreen} />
                 </>
               )}
