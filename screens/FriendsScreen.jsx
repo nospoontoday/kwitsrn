@@ -1,6 +1,6 @@
 import { View, Text, TextInput, Button, Alert, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect, useContext } from 'react';
-import { requestFriend, getFriendRequests, respondToFriendRequest, confirmFriend } from '../services/FriendService';
+import { requestFriend, getFriendRequests, confirmFriend, denyFriend } from '../services/FriendService';
 import AuthContext from '../contexts/AuthContext';
 
 export default function FriendsScreen() {
@@ -66,7 +66,25 @@ export default function FriendsScreen() {
       const response = await confirmFriend(`/friend/confirm/${requestId}`);
       if (response.success) {
         Alert.alert('Success', response.message);
-        fetchFriendRequests(); // Refresh the list after response
+        setFriendRequests(friendRequests.filter(request => request.sender.id !== requestId));
+      } else {
+        Alert.alert('Error', 'Failed to process the request.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'An error occurred while responding to the request.');
+      console.error(err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const handleDeny = async (requestId) => {
+    try {
+      setLoadingRequests(true); // Show loading indicator for requests
+      const response = await denyFriend(`/friend/deny/${requestId}`);
+      if (response.success) {
+        Alert.alert('Success', response.message);
+        setFriendRequests(friendRequests.filter(request => request.sender.id !== requestId));
       } else {
         Alert.alert('Error', 'Failed to process the request.');
       }
@@ -89,7 +107,7 @@ export default function FriendsScreen() {
           <Text style={{ color: 'white' }}>Confirm</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => handleRespondToRequest(item.sender.id, 'deny')}
+          onPress={() => handleDeny(item.sender.id)}
           style={{ backgroundColor: 'red', padding: 10 }}
         >
           <Text style={{ color: 'white' }}>Deny</Text>
