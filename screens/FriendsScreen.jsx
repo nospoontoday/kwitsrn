@@ -1,6 +1,6 @@
 import { View, Text, TextInput, Button, Alert, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect, useContext } from 'react';
-import { requestFriend, getFriendRequests, respondToFriendRequest } from '../services/FriendService';
+import { requestFriend, getFriendRequests, respondToFriendRequest, confirmFriend } from '../services/FriendService';
 import AuthContext from '../contexts/AuthContext';
 
 export default function FriendsScreen() {
@@ -19,14 +19,14 @@ export default function FriendsScreen() {
     try {
       setLoadingRequests(true);
       const response = await getFriendRequests("/friend/requests");
-      if (response.data.length > 0) {
-        const userId = currentUser.id;
 
-        // Filter friend requests to exclude those where the sender is the current user
-        const filteredRequests = response.data.filter(request => request.sender.id !== userId);
-        console.log(filteredRequests);
-        setFriendRequests(filteredRequests); // Assuming response.data contains the friend requests array
-      }
+      const userId = currentUser.id;
+
+      // Filter friend requests to exclude those where the sender is the current user
+      const filteredRequests = response.data?.filter(request => request.sender.id !== userId);
+
+      setFriendRequests(filteredRequests);
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -60,10 +60,10 @@ export default function FriendsScreen() {
     }
   };
 
-  const handleRespondToRequest = async (requestId, action) => {
+  const handleConfirm = async (requestId) => {
     try {
       setLoadingRequests(true); // Show loading indicator for requests
-      const response = await respondToFriendRequest(`/friend/request/${requestId}/${action}`);
+      const response = await confirmFriend(`/friend/confirm/${requestId}`);
       if (response.success) {
         Alert.alert('Success', response.message);
         fetchFriendRequests(); // Refresh the list after response
@@ -83,13 +83,13 @@ export default function FriendsScreen() {
       <Text>{item.sender.name}</Text>
       <View style={{ flexDirection: 'row' }}>
         <TouchableOpacity
-          onPress={() => handleRespondToRequest(item.id, 'confirm')}
+          onPress={() => handleConfirm(item.sender.id)}
           style={{ backgroundColor: 'green', padding: 10, marginRight: 10 }}
         >
           <Text style={{ color: 'white' }}>Confirm</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => handleRespondToRequest(item.id, 'deny')}
+          onPress={() => handleRespondToRequest(item.sender.id, 'deny')}
           style={{ backgroundColor: 'red', padding: 10 }}
         >
           <Text style={{ color: 'white' }}>Deny</Text>
