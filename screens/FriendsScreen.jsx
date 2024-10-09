@@ -1,10 +1,38 @@
-import { View, Text, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
-import React, { useState } from 'react';
-import { requestFriend } from '../services/FriendService';
+import { View, Text, TextInput, Button, Alert, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { requestFriend, getFriendRequests, respondToFriendRequest } from '../services/FriendService';
+import AuthContext from '../contexts/AuthContext';
 
 export default function FriendsScreen() {
+  const { user: currentUser } = useContext(AuthContext);
   const [email, setEmail] = useState(''); // State to store the email
   const [loading, setLoading] = useState(false); // State for loading indicator
+  const [friendRequests, setFriendRequests] = useState([]); // State to store friend requests
+  const [loadingRequests, setLoadingRequests] = useState(false); // State for friend requests loading
+
+  // Fetch friend requests on component mount
+  useEffect(() => {
+    fetchFriendRequests();
+  }, []);
+
+  const fetchFriendRequests = async () => {
+    try {
+      setLoadingRequests(true);
+      const response = await getFriendRequests("/friend/requests");
+      if (response.data.length > 0) {
+        const userId = currentUser.id;
+
+        // Filter friend requests to exclude those where the sender is the current user
+        const filteredRequests = response.data.filter(request => request.sender.id !== userId);
+        console.log(filteredRequests);
+        setFriendRequests(filteredRequests); // Assuming response.data contains the friend requests array
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
 
   const handleAddFriend = async () => {
     if (!email) {
@@ -32,6 +60,44 @@ export default function FriendsScreen() {
     }
   };
 
+  const handleRespondToRequest = async (requestId, action) => {
+    try {
+      setLoadingRequests(true); // Show loading indicator for requests
+      const response = await respondToFriendRequest(`/friend/request/${requestId}/${action}`);
+      if (response.success) {
+        Alert.alert('Success', response.message);
+        fetchFriendRequests(); // Refresh the list after response
+      } else {
+        Alert.alert('Error', 'Failed to process the request.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'An error occurred while responding to the request.');
+      console.error(err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const renderFriendRequest = ({ item }) => (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 }}>
+      <Text>{item.sender.name}</Text>
+      <View style={{ flexDirection: 'row' }}>
+        <TouchableOpacity
+          onPress={() => handleRespondToRequest(item.id, 'confirm')}
+          style={{ backgroundColor: 'green', padding: 10, marginRight: 10 }}
+        >
+          <Text style={{ color: 'white' }}>Confirm</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleRespondToRequest(item.id, 'deny')}
+          style={{ backgroundColor: 'red', padding: 10 }}
+        >
+          <Text style={{ color: 'white' }}>Deny</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <View style={{ padding: 20 }}>
       <Text style={{ fontSize: 24, marginBottom: 20 }}>Add a Friend</Text>
@@ -54,6 +120,19 @@ export default function FriendsScreen() {
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <Button title="Add Friend" onPress={handleAddFriend} />
+      )}
+
+      <Text style={{ fontSize: 24, marginVertical: 20 }}>Friend Requests</Text>
+
+      {loadingRequests ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={friendRequests}
+          renderItem={renderFriendRequest}
+          keyExtractor={item => item.id.toString()} // Assuming each request has a unique 'id'
+          ListEmptyComponent={<Text>No friend requests at the moment.</Text>}
+        />
       )}
     </View>
   );
