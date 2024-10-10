@@ -20,6 +20,7 @@ import ChatRoomHeaderRight from "./components/ChatRoomHeaderRight";
 import { setEchoInstance } from "./utils/echo";
 import { Ionicons } from '@expo/vector-icons'; // Import icons
 import FriendsScreen from "./screens/FriendsScreen";
+import AddGroupScreen from "./screens/AddGroupScreen"; // Import AddGroupScreen
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator(); // Create bottom tab navigator
@@ -33,6 +34,8 @@ function HomeTabs() {
 
           if (route.name === 'Chat') {
             iconName = focused ? "chatbubble" : "chatbubble-outline";
+          } else if (route.name === 'New Group') {
+            iconName = focused ? "add-circle" : "add-circle-outline";
           } else if (route.name === 'Friends') {
             iconName = focused ? 'people' : 'people-outline';
           }
@@ -48,6 +51,13 @@ function HomeTabs() {
         component={HomeScreen}
         options={{
           header: () => <HomeHeader title="Chat" />,  // Pass "Chat" as the title
+        }}
+      />
+      <Tab.Screen
+        name="New Group" 
+        component={AddGroupScreen} // Add the AddGroupScreen here
+        options={{
+          header: () => <HomeHeader title="New Group" />,  // Pass "New Group" as the title
         }}
       />
       <Tab.Screen 
