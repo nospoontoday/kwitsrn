@@ -2,6 +2,7 @@ import { View, Text, TextInput, Button, Alert, ActivityIndicator, FlatList, Touc
 import React, { useState, useEffect, useContext } from 'react';
 import { requestFriend, getFriendRequests, confirmFriend, denyFriend } from '../services/FriendService';
 import AuthContext from '../contexts/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function FriendsScreen() {
   const { user: currentUser } = useContext(AuthContext);
@@ -11,9 +12,11 @@ export default function FriendsScreen() {
   const [loadingRequests, setLoadingRequests] = useState(false); // State for friend requests loading
 
   // Fetch friend requests on component mount
-  useEffect(() => {
-    fetchFriendRequests();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFriendRequests();
+    }, [])
+  );
 
   const fetchFriendRequests = async () => {
     try {
