@@ -24,6 +24,10 @@ export async function requestFriend(route, formData) {
     }
 }
 
+export const getFriends = async (endpoint) => {
+    return await axios.get(endpoint);
+}
+
 
 export const getFriendRequests = async (endpoint) => {
     try {
