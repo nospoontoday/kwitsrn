@@ -1,48 +1,73 @@
-import { Octicons } from "@expo/vector-icons"
-import { StyleSheet, Text, TextInput, View } from "react-native"
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
+import React from 'react';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Octicons } from '@expo/vector-icons';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 export function FormTextField({ icon, placeholder, errors = [], ...rest }) {
-    return (
-        <>
-        <View style={{ height: hp(7) }} className="flex-row px-4 bg-neutral-100 items-center rounded-xl mb-2">
-            {icon && (
-                <Octicons name={icon} size={hp(2.7)} color="gray" />
-            )}
-            <TextInput 
-                className="flex-1 font-semibold text-neutral-700 ml-3"
-                placeholder={placeholder}
-                placeholderTextColor={'gray'}
-                style={styles.textInput}
-                autoCapitalize="none"
-                {...rest}
-            />
-        </View>
-
-        {errors?.length > 0 && (
-            <View style={styles.errorContainer}>
-                {errors.map((err) => (
-                    <Text className="text-right mb-2" key={err} style={styles.error}>{err}</Text>
-                ))}
-            </View>
+  return (
+    <>
+      {/* Input Container */}
+      <View style={styles.inputContainer}>
+        {icon && (
+          <Octicons
+            name={icon}
+            size={hp(2.7)}
+            color="gray"
+            style={styles.icon}
+          />
         )}
-        </>
-    )
+
+        <TextInput
+          placeholder={placeholder}
+          placeholderTextColor="gray"
+          style={styles.textInput}
+          autoCapitalize="none"
+          {...rest}
+        />
+      </View>
+
+      {/* Error Messages */}
+      {errors.length > 0 && (
+        <View style={styles.errorContainer}>
+          {errors.map((err, index) => (
+            <Text key={index} style={styles.errorText}>
+              {err}
+            </Text>
+          ))}
+        </View>
+      )}
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
-    label: {
-        color: "#334155",
-        fontWeight: "500"
-    },
-    textInput: {
-        fontSize: hp(2)
-    },
-    error: {
-        color: "red",
-        marginTop: 2
-    },
-    errorContainer: {
-        marginTop: 2, // Add some margin between the input and error message
-    },
-})
+  inputContainer: {
+    height: hp(7),
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5', // neutral-100
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: hp(2),
+    fontWeight: '600',
+    color: '#374151', // text-neutral-700
+  },
+  errorContainer: {
+    marginTop: 2,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'right',
+    marginBottom: 8,
+  },
+});
