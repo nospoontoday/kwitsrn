@@ -1,61 +1,36 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import MessageItem from './MessageItem';
 import { useStore } from '../store/store';
-
-function LoadingState() {
-  return (
-    <View style={styles.centeredContainer}>
-      <Text style={styles.loadingText}>Loading messages...</Text>
-    </View>
-  );
-}
-
-function EmptyState() {
-  return (
-    <View style={styles.centeredContainer}>
-      <Text style={styles.emptyText}>No messages found</Text>
-    </View>
-  );
-}
 
 export default function MessageList({ loading }) {
   const scrollViewRef = useRef(null);
   const messages = useStore((state) => state.messages);
 
-  /**
-   * Helper function to scroll to the end of the ScrollView.
-   * Wrapped in a useCallback so that it doesn't recreate a new
-   * function every render (though that’s often not a big issue).
-   */
-  const scrollToBottom = useCallback(() => {
-    if (!scrollViewRef.current) return;
-    scrollViewRef.current.scrollToEnd({ animated: true });
-  }, []);
-
-  /**
-   * Whenever messages changes, scroll to bottom if we have messages.
-   * Add a short delay to ensure the ScrollView is fully rendered first.
-   */
-  useEffect(() => {
-    if (messages?.length > 0) {
-      const timer = setTimeout(() => {
-        scrollToBottom();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [messages, scrollToBottom]);
-
-  if (loading) return <LoadingState />;
+  if (loading) {
+    return (
+      <View style={styles.centeredContainer}>
+        <Text style={styles.loadingText}>Loading messages...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       ref={scrollViewRef}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContainer}
+      onContentSizeChange={() => {
+        // Whenever the content size changes (e.g., new messages), scroll to the bottom:
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollToEnd({ animated: true });
+        }
+      }}
     >
       {messages.length === 0 ? (
-        <EmptyState />
+        <View style={styles.centeredContainer}>
+          <Text style={styles.emptyText}>No messages found</Text>
+        </View>
       ) : (
         messages.map((message, index) => (
           <MessageItem message={message} key={index} />
