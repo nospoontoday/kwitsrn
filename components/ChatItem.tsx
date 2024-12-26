@@ -3,9 +3,19 @@ import React from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { formatMessageDateShort } from '../helpers/date';
 import { useNavigation } from '@react-navigation/native';
+import { Conversation } from '../types/conversation';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation';
+interface ChatItemProps {
+    item: any;
+    noBorder: boolean;
+    index: number;
+}
 
-export default function ChatItem({ item, noBorder }) {
-    const navigation = useNavigation();
+type NavigationProps = NativeStackNavigationProp<RootStackParamList, 'ChatRoom'>;
+
+export default function ChatItem({ item, noBorder, index }: ChatItemProps) {
+    const navigation = useNavigation<NavigationProps>();
     const isGroup = item.is_group;
 
     const linkRoute = isGroup ? `/group/${item.id}` : `/user/${item.id}`;

@@ -13,7 +13,7 @@ import { RootStackParamList } from '../navigation';
 type NavigationProps = NativeStackNavigationProp<RootStackParamList, 'AddExpense'>;
 
 interface ChatRoomHeaderRightProps {
-  conversation: any; // Replace 'any' with your actual conversation type if available
+  conversation: any;
 }
 
 export default function ChatRoomHeaderRight({ conversation }: ChatRoomHeaderRightProps) {

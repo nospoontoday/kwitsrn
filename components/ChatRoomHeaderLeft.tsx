@@ -6,9 +6,6 @@ import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 
 export default function ChatRoomHeaderLeft({ conversation }) {
-    const isGroup = conversation.is_group;
-    const isUser = conversation.is_user;
-
     const navigation = useNavigation();
 
     return (

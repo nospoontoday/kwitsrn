@@ -1,5 +1,5 @@
 export type Conversation = {
-    id: string;
+    id: number;
     avatar_url: string;
     is_group: boolean;
     is_user: boolean;
@@ -7,7 +7,7 @@ export type Conversation = {
     public_key: string;
     created_at: Date;
     updated_at: Date;
-    blocked_at: Date;
+    blocked_at: string;
     last_message: string;
-    last_message_date: Date | null;
+    last_message_date: string | null;
 }
