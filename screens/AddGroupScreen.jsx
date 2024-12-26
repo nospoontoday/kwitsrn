@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, ScrollView, Modal, FlatList,
 import { Picker } from "@react-native-picker/picker";
 import { getCurrencies } from '../services/CurrencyService';
 import { getFriends } from '../services/FriendService';
+import { createGroup } from '../services/GroupService';
 
 export default function AddGroupScreen({ navigation }) {
     const [currencies, setCurrencies] = useState([]);
@@ -51,6 +52,7 @@ export default function AddGroupScreen({ navigation }) {
             if (data.id) {
                 console.log('Updating group', data);
             } else {
+                await createGroup("/groups", data);
                 console.log('Creating group', data);
             }
             setProcessing(false);
