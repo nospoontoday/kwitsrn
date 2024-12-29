@@ -35,7 +35,7 @@ import React, {
   /* --------------------------
     1. Custom Hook for Decryption
   --------------------------- */
-  function useDecryptedMessage(message, userId) {
+  function useDecryptedMessage(message, user) {
     const [decryptedMessage, setDecryptedMessage] = useState('Decrypting...');
   
     useEffect(() => {
@@ -58,7 +58,7 @@ import React, {
           }
   
           const parsedMessages = JSON.parse(message.message);
-          const encryptedData = parsedMessages[userId]?.encryptedMessage;
+          const encryptedData = parsedMessages[user.id]?.encryptedMessage;
           if (!encryptedData) {
             setDecryptedMessage('(No encrypted data for this user)');
             return;
@@ -74,20 +74,16 @@ import React, {
   
           let decrypted;
           // Distinguish between group vs. direct conversation
+          
           if (message.receiver_id) {
             // 1-on-1 message
-            const isReceiver = userId === message.receiver_id;
-            const publicKey = isReceiver
-              ? message.sender.public_key
-              : message.sender?.public_key; 
-            // or possibly your own public key if you store it somewhere else
-            decrypted = decryptMessageWithKey(publicKey);
+            decrypted = decryptMessageWithKey(user.public_key);
           } else if (message.group_id) {
             // Group message
             const publicKey =
-              message.sender_id === userId
+              message.sender_id === user.id
                 ? message.sender.public_key
-                : message.sender.public_key;
+                : user.public_key;
             decrypted = decryptMessageWithKey(publicKey);
           }
   
@@ -99,7 +95,7 @@ import React, {
       }
   
       decryptMessage();
-    }, [message, userId]);
+    }, [message, user.id]);
   
     return decryptedMessage;
   }
@@ -161,7 +157,7 @@ import React, {
     const [isDeleted, setIsDeleted] = useState(false);
   
     // Decrypt the message
-    const decryptedMessage = useDecryptedMessage(message, user.id);
+    const decryptedMessage = useDecryptedMessage(message, user);
   
     // Store action
     const deleteMessageFromStore = useStore((state) => state.deleteMessage);

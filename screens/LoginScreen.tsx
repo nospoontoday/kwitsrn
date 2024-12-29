@@ -105,7 +105,7 @@ export default function({ navigation }) {
                     alignItems: 'center'
                 }}>
                     <Text style={{ fontSize: hp(1.8) }} className="font-semibold text-neutral-500">Don't have an account? </Text>
-                    <Pressable onPress={() => { navigation.navigate("Create account") }}>
+                    <Pressable onPress={() => { navigation.navigate("CreateAccount") }}>
                         <Text style={{ fontSize: hp(1.8) }} className="font-bold text-indigo-500">Sign Up</Text>
                     </Pressable>
                 </View>
