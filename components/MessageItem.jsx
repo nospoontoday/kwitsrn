@@ -26,7 +26,7 @@ import React, {
   import Markdown, { MarkdownIt } from 'react-native-markdown-display';
   
   import AuthContext from '../contexts/AuthContext';
-  import { MASTER_KEY } from '@env';
+  import { MASTER_KEY_NAME } from '@env';
   import { decrypt } from '../utils/crypto';
   import { formatMessageDateLong } from '../helpers/date';
   import { destroyMessage } from '../services/MessageService';
@@ -46,7 +46,7 @@ import React, {
             return;
           }
   
-          const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+          const masterKey = await AsyncStorage.getItem(MASTER_KEY_NAME);
           if (!masterKey) {
             console.log('Key expired. Please update key.');
             return;

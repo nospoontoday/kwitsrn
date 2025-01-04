@@ -7,7 +7,7 @@ import { oweMe, oweYou, sendMessage } from '../services/MessageService';
 import { useStore } from '../store/store';
 import { box } from 'tweetnacl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MASTER_KEY } from '@env';
+import { MASTER_KEY_NAME } from '@env';
 import { encrypt } from '../utils/crypto';
 import { decode as decodeBase64 } from '@stablelib/base64';
 import {
@@ -29,7 +29,7 @@ export default function MessageInput({ conversation }) {
    * Throws an error if the master key is not found.
    */
   async function getMasterKeyOrFail() {
-    const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+    const masterKey = await AsyncStorage.getItem(MASTER_KEY_NAME);
     if (!masterKey) {
       throw new Error('Key expired or unavailable. Please update key.');
     }

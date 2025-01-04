@@ -1,6 +1,7 @@
 // env.d.ts
 declare module '@env' {
-    export const MASTER_KEY: string;
+    export const MASTER_KEY_NAME: string;
+    export const MASTER_KEY_KEY: string;
     // add other env variables here...
   
     // If you have multiple variables, just repeat:

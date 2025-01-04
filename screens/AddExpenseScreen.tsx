@@ -17,7 +17,7 @@ import { InteractionManager } from 'react-native'; // or requestAnimationFrame
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AuthContext from '../contexts/AuthContext';
-import { MASTER_KEY } from '@env';
+import { MASTER_KEY_NAME } from '@env';
 import { decode as decodeBase64 } from '@stablelib/base64';
 import { box } from 'tweetnacl';
 
@@ -124,7 +124,7 @@ export default function AddExpenseScreen() {
     InteractionManager.runAfterInteractions(async () => {
       try {
         // 1. Master key
-        const masterKey = await AsyncStorage.getItem(MASTER_KEY);
+        const masterKey = await AsyncStorage.getItem(MASTER_KEY_NAME);
         if (!masterKey) {
           Alert.alert('Key expired', 'Please update your encryption key.');
           setProcessing(false);

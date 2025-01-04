@@ -1,9 +1,9 @@
 import { getRandomBytes } from "expo-crypto";
-import { box, randomBytes, setPRNG } from "tweetnacl";
+import { box, setPRNG } from "tweetnacl";
 import {decode as decodeUTF8, encode as encodeUTF8} from '@stablelib/utf8';
 import {decode as decodeBase64, encode as encodeBase64} from '@stablelib/base64';
 import { savePublicKey } from "../services/KeyService";
-import { MASTER_KEY } from "@env";
+import { MASTER_KEY_NAME, MASTER_KEY_KEY } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function PRNG(x, n) {
@@ -37,15 +37,23 @@ export const encrypt = ( secretOrSharedKey, json, key ) => {
 // Create key pair and store as Base64
 export async function createKeyPair() {
     const { publicKey, secretKey } = generateKeyPair();
-
+  
     try {
-        // Save keys as Base64 strings
-        await AsyncStorage.setItem(MASTER_KEY, encodeBase64(secretKey));
-        await savePublicKey(encodeBase64(publicKey));
+      // Check if the master key already exists
+      const existingMasterKey = await AsyncStorage.getItem(MASTER_KEY_NAME);
+      if (!existingMasterKey) {
+        // Save the master secret key (only once)
+        await AsyncStorage.setItem(MASTER_KEY_NAME, MASTER_KEY_KEY);
+      } else {
+        console.log("Master key already exists, skipping key creation");
+      }
+  
+      // Save the public key (always, as this might differ per user/device)
+      await savePublicKey(encodeBase64(publicKey));
     } catch (e) {
-        console.log("Key pair not set", e);
+      console.log("Error saving key pair", e);
     }
-}
+  }
 
 export const decrypt = ( secretOrSharedKey, messageWithNonce, key) => {
 
