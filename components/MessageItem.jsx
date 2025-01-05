@@ -64,27 +64,11 @@ import React, {
             setDecryptedMessage('(No encrypted data for this user)');
             return;
           }
-  
-          const decryptMessageWithKey = (encryptedMessage, private_key, public_key) => {
-            return decrypt(encryptedMessage, private_key, public_key);
-          };
-  
+
           let decrypted;
           // Distinguish between group vs. direct conversation
-          
-          if (message.receiver_id) {
-            // 1-on-1 message
-            decrypted = decrypt(encryptedData, user.private_key, message.sender.public_key);
-            // decrypted = decryptMessageWithKey(encryptedData, user.private_key, user.public_key);
-          } else if (message.group_id) {
-            // Group message
-            const publicKey =
-              message.sender_id === user.id
-                ? message.sender.public_key
-                : user.public_key;
-            decrypted = decryptMessageWithKey(publicKey);
-          }
-  
+          decrypted = decrypt(encryptedData, user.private_key, message.sender.public_key);
+
           setDecryptedMessage(decrypted?.message || 'Could not decrypt message');
         } catch (err) {
           console.log('Failed to decrypt message:', err);

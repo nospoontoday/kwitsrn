@@ -55,12 +55,10 @@ export default function MessageInput({ conversation }) {
       await Promise.all(
         users.map(async (user) => {
           if (!user.public_key) return; // Skip if user has no public key
-          const sharedKey = box.before(
-            decodeBase64(user.public_key),
-            decodeBase64(masterKey)
-          );
-          const encryptedForUser = encrypt(sharedKey, messageObj);
-          encryptedMessages[user.id] = { encryptedMessage: encryptedForUser };
+          // map except for the current user
+          if(user.id == currentUser.id) return;
+          const encryptedForRecipient = encrypt(messageObj, user.public_key, currentUser.private_key);
+          encryptedMessages[user.id] = { encryptedMessage: encryptedForRecipient };
         })
       );
     } else {

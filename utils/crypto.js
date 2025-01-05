@@ -19,39 +19,6 @@ const newNonce = () => getRandomBytes(box.nonceLength);
 
 export const generateKeyPair = () => box.keyPair();
 
-/**
- * Encrypt a message using the shared key.
- * @param {Uint8Array} sharedKey - The shared key generated with `box.before`.
- * @param {string} message - The plain-text message to encrypt.
- * @returns {string} - The encrypted message (Base64-encoded).
- */
-// export const encrypt = ( sharedKey, message ) => {
-
-//     try {
-//         const nonce = newNonce();
-
-//         if (!nonce) {
-//             throw new Error('nonce not generated.');
-//         }
-
-//         const messageUint8 = encodeUTF8(JSON.stringify(message));
-//         const encryptedMessage = box.after(messageUint8, nonce, sharedKey);
-    
-//         if (!encryptedMessage) {
-//             throw new Error('no encrypted message generated.');
-//         }
-    
-//         const fullMessage = new Uint8Array(nonce.length + encryptedMessage.length);
-//         fullMessage.set(nonce);
-//         fullMessage.set(encryptedMessage, nonce.length);
-    
-//         return encodeBase64(fullMessage);
-//     } catch (error) {
-//         console.error("ERROR when encrypting message: ", error);
-//         throw error;
-//     }
-// }
-
 export const encrypt = ( message, recipientPublicKey, senderPrivateKey ) => {
 
     try {
@@ -69,7 +36,7 @@ export const encrypt = ( message, recipientPublicKey, senderPrivateKey ) => {
 
         const messageUint8 = encodeUTF8(JSON.stringify(message));
         const encryptedMessage = box.after(messageUint8, nonce, sharedKey);
-    
+
         if (!encryptedMessage) {
             throw new Error('no encrypted message generated.');
         }
@@ -96,26 +63,6 @@ export async function createKeyPair() {
         console.log("Error saving keys", e);
     }
 }
-
-// export const decrypt = ( sharedKey, messageWithNonce ) => {
-//     const messageWithNonceAsUint8Array = decodeBase64(messageWithNonce);
-
-//     const nonce = messageWithNonceAsUint8Array.slice(0, box.nonceLength);
-
-//     const message = messageWithNonceAsUint8Array.slice(
-//         box.nonceLength,
-//         messageWithNonce?.length
-//     );
-
-//     const decrypted = box.open.after(message, nonce, sharedKey);
-
-//     if(!decrypted) {
-//         throw new Error("Could not decrypt message");
-//     }
-
-//     const base64DecryptedMessage = decodeUTF8(decrypted);
-//     return JSON.parse(base64DecryptedMessage);
-// }
 
 /**
  * Decrypt a message for a user.
