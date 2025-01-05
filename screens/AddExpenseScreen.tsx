@@ -153,23 +153,18 @@ export default function AddExpenseScreen() {
         await Promise.all(
           users.map(async (user: any) => {
             if (!user.public_key) return;
-            const sharedKeyForOtherUser = box.before(
-              decodeBase64(user.public_key),
-              decodeBase64(masterKey)
-            );
-            const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, obj);
-            encryptedMessages[user.id] = { encryptedMessage: encryptedForOtherUser };
+            // map except for the current user
+            if(user.id == currentUser.id) return;
+
+            const encryptedForRecipient = encrypt(obj, user.public_key, currentUser.private_key);
+            encryptedMessages[user.id] = { encryptedMessage: encryptedForRecipient };
           })
         );
 
         // 6. Encrypt also for the current user
         if (currentUser?.public_key) {
-          const sharedKeyForCurrentUser = box.before(
-            decodeBase64(currentUser.public_key),
-            decodeBase64(masterKey)
-          );
           encryptedMessages[currentUser.id] = {
-            encryptedMessage: encrypt(sharedKeyForCurrentUser, obj),
+            encryptedMessage: encrypt(obj, currentUser.public_key, currentUser.private_key),
           };
         }
 

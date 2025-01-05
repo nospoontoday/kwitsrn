@@ -59,7 +59,7 @@ import React, {
   
           const parsedMessages = JSON.parse(message.message);
           const encryptedData = parsedMessages[user.id]?.encryptedMessage;
-          console.log(encryptedData);
+
           if (!encryptedData) {
             setDecryptedMessage('(No encrypted data for this user)');
             return;
