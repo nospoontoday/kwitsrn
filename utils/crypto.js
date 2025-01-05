@@ -2,7 +2,7 @@ import { getRandomBytes } from "expo-crypto";
 import { box, setPRNG } from "tweetnacl";
 import {decode as decodeUTF8, encode as encodeUTF8} from '@stablelib/utf8';
 import {decode as decodeBase64, encode as encodeBase64} from '@stablelib/base64';
-import { savePublicKey } from "../services/KeyService";
+import { savePublicKey, saveSecretKey } from "../services/KeyService";
 import { MASTER_KEY_NAME, MASTER_KEY_KEY } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -19,61 +19,136 @@ const newNonce = () => getRandomBytes(box.nonceLength);
 
 export const generateKeyPair = () => box.keyPair();
 
-export const encrypt = ( secretOrSharedKey, json, key ) => {
-    const nonce = newNonce();
-    const messageUint8 = encodeUTF8(JSON.stringify(json));
-    const encrypted = key
-        ? box(messageUint8, nonce, key, secretOrSharedKey)
-        : box.after(messageUint8, nonce, secretOrSharedKey);
+/**
+ * Encrypt a message using the shared key.
+ * @param {Uint8Array} sharedKey - The shared key generated with `box.before`.
+ * @param {string} message - The plain-text message to encrypt.
+ * @returns {string} - The encrypted message (Base64-encoded).
+ */
+// export const encrypt = ( sharedKey, message ) => {
 
-    const fullMessage = new Uint8Array(nonce.length + encrypted.length);
-    fullMessage.set(nonce);
-    fullMessage.set(encrypted, nonce.length);
+//     try {
+//         const nonce = newNonce();
 
-    const base64FullMessage = encodeBase64(fullMessage);
-    return base64FullMessage;
+//         if (!nonce) {
+//             throw new Error('nonce not generated.');
+//         }
+
+//         const messageUint8 = encodeUTF8(JSON.stringify(message));
+//         const encryptedMessage = box.after(messageUint8, nonce, sharedKey);
+    
+//         if (!encryptedMessage) {
+//             throw new Error('no encrypted message generated.');
+//         }
+    
+//         const fullMessage = new Uint8Array(nonce.length + encryptedMessage.length);
+//         fullMessage.set(nonce);
+//         fullMessage.set(encryptedMessage, nonce.length);
+    
+//         return encodeBase64(fullMessage);
+//     } catch (error) {
+//         console.error("ERROR when encrypting message: ", error);
+//         throw error;
+//     }
+// }
+
+export const encrypt = ( message, recipientPublicKey, senderPrivateKey ) => {
+
+    try {
+        const nonce = newNonce();
+
+        if (!nonce) {
+            throw new Error('nonce not generated.');
+        }
+
+        const recipientPublicKeyUint8 = decodeBase64(recipientPublicKey);
+        const senderPrivateKeyUint8 = decodeBase64(senderPrivateKey);
+
+        // Create a shared key using the sender's private key and recipient's public key
+        const sharedKey = box.before(recipientPublicKeyUint8, senderPrivateKeyUint8);
+
+        const messageUint8 = encodeUTF8(JSON.stringify(message));
+        const encryptedMessage = box.after(messageUint8, nonce, sharedKey);
+    
+        if (!encryptedMessage) {
+            throw new Error('no encrypted message generated.');
+        }
+    
+        const fullMessage = new Uint8Array(nonce.length + encryptedMessage.length);
+        fullMessage.set(nonce);
+        fullMessage.set(encryptedMessage, nonce.length);
+    
+        return encodeBase64(fullMessage);
+    } catch (error) {
+        console.error("ERROR when encrypting message: ", error);
+        throw error;
+    }
 }
 
 // Create key pair and store as Base64
 export async function createKeyPair() {
     const { publicKey, secretKey } = generateKeyPair();
-  
+
     try {
-      // Check if the master key already exists
-      const existingMasterKey = await AsyncStorage.getItem(MASTER_KEY_NAME);
-      if (!existingMasterKey) {
-        // Save the master secret key (only once)
-        await AsyncStorage.setItem(MASTER_KEY_NAME, MASTER_KEY_KEY);
-      } else {
-        console.log("Master key already exists, skipping key creation");
-      }
-  
-      // Save the public key (always, as this might differ per user/device)
-      await savePublicKey(encodeBase64(publicKey));
-    } catch (e) {
-      console.log("Error saving key pair", e);
+        await savePublicKey(encodeBase64(publicKey));
+        await saveSecretKey(encodeBase64(secretKey));
+    } catch (error) {
+        console.log("Error saving keys", e);
     }
-  }
+}
 
-export const decrypt = ( secretOrSharedKey, messageWithNonce, key) => {
+// export const decrypt = ( sharedKey, messageWithNonce ) => {
+//     const messageWithNonceAsUint8Array = decodeBase64(messageWithNonce);
 
+//     const nonce = messageWithNonceAsUint8Array.slice(0, box.nonceLength);
+
+//     const message = messageWithNonceAsUint8Array.slice(
+//         box.nonceLength,
+//         messageWithNonce?.length
+//     );
+
+//     const decrypted = box.open.after(message, nonce, sharedKey);
+
+//     if(!decrypted) {
+//         throw new Error("Could not decrypt message");
+//     }
+
+//     const base64DecryptedMessage = decodeUTF8(decrypted);
+//     return JSON.parse(base64DecryptedMessage);
+// }
+
+/**
+ * Decrypt a message for a user.
+ * @param {string} encryptedMessage - Base64-encoded encrypted message.
+ * @param {string} recipientPrivateKey - Base64-encoded private key of the recipient.
+ * @param {string} senderPublicKey - Base64-encoded public key of the sender.
+ * @returns {string} - The decrypted plain-text message.
+ */
+export const decrypt = (messageWithNonce, recipientPrivateKey, senderPublicKey) => {
     const messageWithNonceAsUint8Array = decodeBase64(messageWithNonce);
-
+  
+    // Extract nonce and encrypted data
     const nonce = messageWithNonceAsUint8Array.slice(0, box.nonceLength);
-
+    
     const message = messageWithNonceAsUint8Array.slice(
         box.nonceLength,
         messageWithNonce?.length
     );
-
-    const decrypted = key
-        ? box.open(message, nonce, key, secretOrSharedKey)
-        : box.open.after(message, nonce, secretOrSharedKey);
-
-    if(!decrypted) {
-        throw new Error("Could not decrypt message");
+  
+    const recipientPrivateKeyUint8 = decodeBase64(recipientPrivateKey);
+    const senderPublicKeyUint8 = decodeBase64(senderPublicKey);
+  
+    // Generate the shared key
+    const sharedKey = box.before(senderPublicKeyUint8, recipientPrivateKeyUint8);
+  
+    // Decrypt the message
+    const decrypted = box.open.after(message, nonce, sharedKey);
+  
+    if (!decrypted) {
+      throw new Error("Decryption failed.");
     }
 
     const base64DecryptedMessage = decodeUTF8(decrypted);
+  
     return JSON.parse(base64DecryptedMessage);
-}
+  };

@@ -59,17 +59,14 @@ import React, {
   
           const parsedMessages = JSON.parse(message.message);
           const encryptedData = parsedMessages[user.id]?.encryptedMessage;
+          console.log(encryptedData);
           if (!encryptedData) {
             setDecryptedMessage('(No encrypted data for this user)');
             return;
           }
   
-          const decryptMessageWithKey = (publicKey) => {
-            const sharedKey = box.before(
-              decodeBase64(publicKey),
-              decodeBase64(masterKey)
-            );
-            return decrypt(sharedKey, encryptedData);
+          const decryptMessageWithKey = (encryptedMessage, private_key, public_key) => {
+            return decrypt(encryptedMessage, private_key, public_key);
           };
   
           let decrypted;
@@ -77,7 +74,8 @@ import React, {
           
           if (message.receiver_id) {
             // 1-on-1 message
-            decrypted = decryptMessageWithKey(user.public_key);
+            decrypted = decrypt(encryptedData, user.private_key, message.sender.public_key);
+            // decrypted = decryptMessageWithKey(encryptedData, user.private_key, user.public_key);
           } else if (message.group_id) {
             // Group message
             const publicKey =

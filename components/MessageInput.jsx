@@ -47,8 +47,9 @@ export default function MessageInput({ conversation }) {
     messageObj
   ) {
     const encryptedMessages = {};
+    const recipient = conversation;
 
-    if (conversation.is_group) {
+    if (recipient.is_group) {
       // Group conversation
       const { users } = conversation;
       await Promise.all(
@@ -64,27 +65,21 @@ export default function MessageInput({ conversation }) {
       );
     } else {
       // One-to-one conversation
-      if (!conversation.public_key) {
+      if (!recipient.public_key) {
         throw new Error('Recipient user has no public key or needs to log in.');
       }
-      const sharedKeyForOtherUser = box.before(
-        decodeBase64(conversation.public_key),
-        decodeBase64(masterKey)
-      );
-      const encryptedForOtherUser = encrypt(sharedKeyForOtherUser, messageObj);
-      encryptedMessages[conversation.id] = {
-        encryptedMessage: encryptedForOtherUser,
+
+      const encryptedForRecipient = encrypt(messageObj, recipient.public_key, currentUser.private_key);
+
+      encryptedMessages[recipient.id] = {
+        encryptedMessage: encryptedForRecipient,
       };
     }
 
-    // Always encrypt for the current user as well
-    const sharedKeyForCurrentUser = box.before(
-      decodeBase64(currentUser.public_key),
-      decodeBase64(masterKey)
-    );
-    const encryptedForCurrentUser = encrypt(sharedKeyForCurrentUser, messageObj);
+    const encryptedForSender = encrypt(messageObj, currentUser.public_key, currentUser.private_key);
+  
     encryptedMessages[currentUser.id] = {
-      encryptedMessage: encryptedForCurrentUser,
+      encryptedMessage: encryptedForSender,
     };
 
     return encryptedMessages;

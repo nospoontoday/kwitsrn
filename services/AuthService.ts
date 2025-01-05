@@ -1,5 +1,7 @@
 import axios from "../utils/axios";
 import { setToken } from "./TokenService";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MASTER_KEY_NAME } from '@env';
 
 interface LoginCredentials {
     email: string;
@@ -38,5 +40,13 @@ export async function loadUser() {
 
 export async function logout() {
     await axios.post("/logout", {});
+
+    try {
+        await AsyncStorage.removeItem(MASTER_KEY_NAME);
+        console.log(`${MASTER_KEY_NAME} has been removed from AsyncStorage.`);
+    } catch (error) {
+        console.error(`Failed to remove ${MASTER_KEY_NAME}:`, error);
+    }
+
     await setToken(null);
 }

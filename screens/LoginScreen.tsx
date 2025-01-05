@@ -3,12 +3,15 @@ import { FormTextField } from "../components/FormTextField";
 import { useContext, useState } from "react";
 import { loadUser, login } from "../services/AuthService";
 import AuthContext from "../contexts/AuthContext";
-
+import {encode as encodeBase64} from '@stablelib/base64';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { StatusBar } from "expo-status-bar";
 import Loading from "../components/Loading";
 import CustomKeyboardView from "../components/CustomKeyboardView";
 import { createKeyPair } from "../utils/crypto";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MASTER_KEY_NAME, MASTER_KEY_KEY } from "@env";
+import {encode as encodeUTF8} from '@stablelib/utf8';
 
 export default function({ navigation }) {
     const [loading, setLoading] = useState(false);
@@ -32,6 +35,21 @@ export default function({ navigation }) {
 
             if(!user.public_key) {
                 createKeyPair();
+            }
+
+            //repeated code block. See RegisterScreen
+            try {
+                // Check if the master key already exists
+                const existingMasterKey = await AsyncStorage.getItem(MASTER_KEY_NAME);
+
+                if (!existingMasterKey) {
+                    // Save the master secret key (only once)
+                    await AsyncStorage.setItem(MASTER_KEY_NAME, user.private_key);
+                } else {
+                    console.log("Master key already exists, skipping key creation");
+                }
+            } catch (e) {
+                console.log("Error saving key pair", e);
             }
         } catch (e) {
             console.log(e)
