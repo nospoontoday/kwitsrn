@@ -70,29 +70,27 @@ export default function ChatList() {
    *  2. Subscribe to Echo Channels
    *     whenever 'conversations' changes
    --------------------------------- */
-  useEffect(() => {
-    // If you only need to re-subscribe once per conversation,
-    // you might want to unsubscribe or avoid duplicates.
-    // For now, this repeatedly calls echo?.private for each conversation
-    // but it should be harmless if echo is handling duplicates gracefully.
-    conversations.forEach((conversation) => {
-      let channelString = `message.group.${conversation.id}`;
-
-      if (conversation.is_user) {
-        channelString = `message.user.${[user.id, conversation.id]
-          .sort((a, b) => a - b)
-          .join('.')}`;
-      }
-
-      echo
-        ?.private(channelString)
-        .error((err: any) => {
-          console.error('Echo channel error:', err);
-        })
-        .listen('.SocketMessage', (event: any) => {
-          console.log('RealTimeEvent received:', event);
-        });
-    });
+   useEffect(() => {
+    if (conversations?.length) {
+      conversations.forEach((conversation) => {
+        let channelString = `message.group.${conversation.id}`;
+  
+        if (conversation.is_user) {
+          channelString = `message.user.${[user.id, conversation.id]
+            .sort((a, b) => a - b)
+            .join('.')}`;
+        }
+  
+        echo
+          ?.private(channelString)
+          .error((err: any) => {
+            console.error('Echo channel error:', err);
+          })
+          .listen('.SocketMessage', (event: any) => {
+            console.log('RealTimeEvent received:', event);
+          });
+      });
+    }
   }, [conversations, echo, user.id]);
 
   /** --------------------------------

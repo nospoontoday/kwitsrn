@@ -25,7 +25,6 @@ export default function ChatRoomHeaderRight({ conversation }: ChatRoomHeaderRigh
       return;
     }
 
-    console.log('Navigating to AddExpense...');
     navigation.navigate('AddExpense', { conversation });
   };
 
