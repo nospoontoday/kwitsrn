@@ -135,6 +135,16 @@ import React, {
   --------------------------- */
   export default function MessageItem({ message }) {
     const { user } = useContext(AuthContext);
+
+    // Early return if `message` is null or undefined
+    if (!message) {
+      return (
+        <View style={{ marginBottom: 12, alignItems: 'center' }}>
+          <Text style={{ color: 'gray' }}>Message not available</Text>
+        </View>
+      );
+    }
+
     const isUserSender = user.id === message.sender_id;
     const [isDeleted, setIsDeleted] = useState(false);
   
